@@ -21,7 +21,7 @@ class Cliente
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 255)]
     private ?string $apellidos = null;
 
-    #[ORM\Column(name: "DNI", type: Types::STRING, length: 255)]
+    #[ORM\Column(name: "DNI", type: Types::STRING, length: 255, unique: true)]
     private ?string $DNI = null;
 
     #[ORM\Column(name: "foto", type: Types::STRING, length: 255)]
