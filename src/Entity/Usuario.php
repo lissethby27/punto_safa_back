@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UsuarioRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UsuarioRepository::class)]
@@ -15,16 +16,16 @@ class Usuario
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "nick", type: Types::STRING,length: 255)]
     private ?string $nick = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(name: "contrasena", type: Types::STRING ,length: 100)]
     private ?string $contrasena = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(name: "rol", type: Types::STRING, length: 100)]
     private ?string $rol = null;
 
-    #[ORM\Column(length: 150)]
+    #[ORM\Column(name: "email", type: Types::STRING, length: 150)]
     private ?string $email = null;
 
     public function getId(): ?int

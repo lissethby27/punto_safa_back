@@ -16,19 +16,19 @@ class Pedido
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(name: "fecha", type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $fecha = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: "total", type: Types::FLOAT)]
     private ?float $total = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(name: "estado", type: Types::STRING, length: 100)]
     private ?string $estado = null;
 
-    #[ORM\Column(length: 200)]
+    #[ORM\Column(name: "direccion_entrega", type: Types::STRING, length: 255)]
     private ?string $direccion_entrega = null;
 
-    #[ORM\Column]
+    #[ORM\Column (name: "id_cliente", type: Types::INTEGER)]
     private ?int $id_cliente = null;
 
     public function getId(): ?int

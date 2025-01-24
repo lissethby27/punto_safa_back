@@ -4,10 +4,10 @@ namespace App\Entity;
 
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: ClienteRepository::class)]
 #[ORM\Table(name: "cliente", schema: "puntosafa")]
-
 class Cliente
 {
     #[ORM\Id]
@@ -15,25 +15,25 @@ class Cliente
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "nombre", type: Types::STRING, length: 255)]
     private ?string $nombre = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "apellidos", type: Types::STRING, length: 255)]
     private ?string $apellidos = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "DNI", type: Types::STRING, length: 255)]
     private ?string $DNI = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "foto", type: Types::STRING, length: 255)]
     private ?string $foto = null;
 
-    #[ORM\Column(length: 200)]
+    #[ORM\Column(name: "direccion", type: Types::STRING, length: 200)]
     private ?string $direccion = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
     private ?string $telefono = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: "id_usuario", type: Types::INTEGER)]
     private ?int $id_usuario = null;
 
     public function getId(): ?int

@@ -8,8 +8,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AutorRepository::class)]
 #[ORM\Table(name: "autor", schema: "puntosafa")]
-
-
 class Autor
 {
     #[ORM\Id]
@@ -17,19 +15,19 @@ class Autor
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "nombre", type: Types::STRING, length: 255)]
     private ?string $nombre = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "apellidos", type: Types::STRING, length: 255)]
     private ?string $apellidos = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: "biografia", type: Types::STRING, length: 255)]
     private ?string $biografia = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(name: "nacionalidad", type: Types::STRING, length: 255, nullable: true)]
     private ?string $nacionalidad = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[ORM\Column(name: "fecha_nacimiento", type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $fecha_nacimiento = null;
 
     public function getId(): ?int
