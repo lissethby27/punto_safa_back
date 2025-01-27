@@ -15,13 +15,13 @@ class Cliente
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(name: "nombre", type: Types::STRING, length: 255)]
+    #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
     private ?string $nombre = null;
 
-    #[ORM\Column(name: "apellidos", type: Types::STRING, length: 255)]
+    #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
     private ?string $apellidos = null;
 
-    #[ORM\Column(name: "DNI", type: Types::STRING, length: 255, unique: true)]
+    #[ORM\Column(name: "DNI", type: Types::STRING, length: 100, unique: true)]
     private ?string $DNI = null;
 
     #[ORM\Column(name: "foto", type: Types::STRING, length: 255)]
