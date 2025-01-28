@@ -11,13 +11,13 @@ class LineaPedido
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column (name:'id',type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'cantidad', type: "integer")]
     private ?int $cantidad = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'precio_unitario', type: "float")]
     private ?float $precio_unitario = null;
 
     #[ORM\ManyToOne(inversedBy: 'lineaPedidos')]

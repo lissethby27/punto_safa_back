@@ -12,16 +12,16 @@ class Resena
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(name:'id',type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(name:'calificacion',type: "integer")]
     private ?int $calificacion = null;
 
-    #[ORM\Column(length: 200)]
+    #[ORM\Column(name:'comentario',length: 200)]
     private ?string $comentario = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(name:'fecha',type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $fecha = null;
 
     #[ORM\ManyToOne(targetEntity: Libro::class)]

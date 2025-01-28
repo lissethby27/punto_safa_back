@@ -13,13 +13,13 @@ class Categoria
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: "id",type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(name:'nombre',length: 100)]
     private ?string $nombre = null;
 
-    #[ORM\Column(length: 800)]
+    #[ORM\Column(name:'descripcion',length: 800)]
     private ?string $descripcion = null;
 
 
