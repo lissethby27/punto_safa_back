@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PedidoRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -25,11 +27,22 @@ class Pedido
     #[ORM\Column(name: "estado", type: Types::STRING, length: 100)]
     private ?string $estado = null;
 
-    #[ORM\Column(name: "direccion_entrega", type: Types::STRING, length: 255)]
+    #[ORM\Column(name: "direccion_entrega", type: Types::STRING, length: 200)]
     private ?string $direccion_entrega = null;
 
     #[ORM\Column (name: "id_cliente", type: Types::INTEGER)]
     private ?int $id_cliente = null;
+
+    /**
+     * @var Collection<int, LineaPedido>
+     */
+    #[ORM\OneToMany(targetEntity: LineaPedido::class, mappedBy: 'pedido')]
+    private Collection $lineaPedidos;
+
+    public function __construct()
+    {
+        $this->lineaPedidos = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -92,6 +105,36 @@ class Pedido
     public function setIdCliente(int $id_cliente): static
     {
         $this->id_cliente = $id_cliente;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LineaPedido>
+     */
+    public function getLineaPedidos(): Collection
+    {
+        return $this->lineaPedidos;
+    }
+
+    public function addLineaPedido(LineaPedido $lineaPedido): static
+    {
+        if (!$this->lineaPedidos->contains($lineaPedido)) {
+            $this->lineaPedidos->add($lineaPedido);
+            $lineaPedido->setIdPedido($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLineaPedido(LineaPedido $lineaPedido): static
+    {
+        if ($this->lineaPedidos->removeElement($lineaPedido)) {
+            // set the owning side to null (unless already changed)
+            if ($lineaPedido->getIdPedido() === $this) {
+                $lineaPedido->setIdPedido(null);
+            }
+        }
 
         return $this;
     }
