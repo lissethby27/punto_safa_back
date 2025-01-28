@@ -14,34 +14,34 @@ class Libro
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: 'id',type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: 'titulo',length: 255)]
     private ?string $titulo = null;
 
-    #[ORM\Column(length: 800, nullable: true)]
+    #[ORM\Column(name:'resumen',length: 800, nullable: true)]
     private ?string $resumen = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(name:'anio_publicacion',type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $anio_publicacion = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name:'precio',type: Types::FLOAT)]
     private ?float $precio = null;
 
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(name:'ISBN',length: 20)]
     private ?string $ISBN = null;
 
-    #[ORM\Column(length: 200)]
+    #[ORM\Column(name:'editorial',length: 200)]
     private ?string $editorial = null;
 
-    #[ORM\Column(length: 500)]
+    #[ORM\Column(name:'image',length: 500)]
     private ?string $imagen = null;
 
-    #[ORM\Column(length: 100, nullable: true)]
+    #[ORM\Column(name:'idioma',length: 100, nullable: true)]
     private ?string $idioma = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name:'num_paginas',type: Types::INTEGER, nullable: true)]
     private ?int $num_paginas = null;
 
     #[ORM\ManyToOne(inversedBy: 'libros')]
