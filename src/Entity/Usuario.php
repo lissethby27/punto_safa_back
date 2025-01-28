@@ -7,11 +7,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UsuarioRepository::class)]
 #[ORM\Table(name: "usuario", schema: "puntosafa")]
-
-class Usuario
+class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -122,5 +123,27 @@ class Usuario
         }
 
         return $this;
+    }
+
+    public function getRoles(): array
+    {
+        $roles = [];
+        $roles[] = $this->rol;
+        return $roles;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Si tienes datos sensibles temporales, bórralos aquí
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->nick;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->contrasena;
     }
 }
