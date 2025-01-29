@@ -32,6 +32,7 @@ class Autor
     #[ORM\Column(name: "fecha_nacimiento", type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $fecha_nacimiento = null;
 
+
     /**
      * @var Collection<int, Libro>
      */
