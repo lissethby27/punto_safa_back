@@ -27,7 +27,7 @@ final class UsuarioController extends AbstractController
         $entityManager->flush();
 
         /** @var Usuario $usuario */
-        // $usuario = $this->getUser();
+         $usuario = $this->getUser(); // token
 
         return new JsonResponse(['mensaje' => 'Usuario registrado correctamente'], 201);
 

@@ -2,57 +2,58 @@
 
 namespace App\Entity;
 
+use AllowDynamicProperties;
 use App\Repository\LibroRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: LibroRepository::class)]
+#[AllowDynamicProperties] #[ORM\Entity(repositoryClass: LibroRepository::class)]
 #[ORM\Table(name: "libro", schema: "puntosafa")]
 class Libro
 {
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id',type: "integer")]
+    #[ORM\Column(name: 'id', type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'titulo',length: 255)]
+    #[ORM\Column(name: 'titulo', type: "string", length: 255)]
     private ?string $titulo = null;
 
-    #[ORM\Column(name:'resumen',length: 800, nullable: true)]
+    #[ORM\Column(name: 'resumen', type: 'string', length: 800, nullable: true)]
     private ?string $resumen = null;
 
-    #[ORM\Column(name:'anio_publicacion',type: Types::DATE_MUTABLE)]
+    #[ORM\Column(name: 'anio_publicacion', type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $anio_publicacion = null;
 
-    #[ORM\Column(name:'precio',type: Types::FLOAT)]
+    #[ORM\Column(name: 'precio', type: Types::FLOAT)]
     private ?float $precio = null;
 
-    #[ORM\Column(name:'ISBN',length: 20)]
+    #[ORM\Column(name: 'ISBN', type: "string", length: 20)]
     private ?string $ISBN = null;
 
-    #[ORM\Column(name:'editorial',length: 200)]
+    #[ORM\Column(name: 'editorial', type: "string", length: 200)]
     private ?string $editorial = null;
 
-    #[ORM\Column(name:'image',length: 500)]
+    #[ORM\Column(name: 'imagen', type: "string", length: 500)]
     private ?string $imagen = null;
 
-    #[ORM\Column(name:'idioma',length: 100, nullable: true)]
+    #[ORM\Column(name: 'idioma', type: "string", length: 100, nullable: true)]
     private ?string $idioma = null;
 
-    #[ORM\Column(name:'num_paginas',type: Types::INTEGER, nullable: true)]
+    #[ORM\Column(name: 'num_paginas', type: Types::INTEGER, nullable: true)]
     private ?int $num_paginas = null;
 
-    #[ORM\ManyToOne(inversedBy: 'libros')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Autor::class, inversedBy: "libros")]
+    #[ORM\JoinColumn(name: 'id_autor', nullable: false)]
     private ?Autor $autor = null;
 
-
-
-    #[ORM\ManyToOne(inversedBy: 'categoria')]
+    #[ORM\ManyToOne(targetEntity: Categoria::class, inversedBy: "libros")]
     #[ORM\JoinColumn(nullable: false)]
     private ?Categoria $categoria = null;
+
 
     /**
      * @var Collection<int, Resena>

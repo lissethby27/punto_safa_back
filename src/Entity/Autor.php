@@ -14,7 +14,7 @@ class Autor
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: "id", type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
