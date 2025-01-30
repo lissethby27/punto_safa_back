@@ -25,8 +25,9 @@ class LineaPedido
     private ?Libro $libro = null;
 
     #[ORM\ManyToOne(inversedBy: 'lineaPedidos')]
-    #[ORM\JoinColumn(name: "id_libro", referencedColumnName: "id", nullable: false)]
+    #[ORM\JoinColumn(name: "id_pedido", referencedColumnName: "id", nullable: false)]
     private ?Pedido $pedido = null;
+
 
     public function getId(): ?int
     {
@@ -58,26 +59,26 @@ class LineaPedido
         return $this;
     }
 
-    public function getIdLibro(): ?Libro
+    public function getLibro(): ?Libro
     {
-        return $this->id_libro;
+        return $this->libro;
     }
 
-    public function setIdLibro(?Libro $id_libro): static
+    public function setLibro(?Libro $libro): static
     {
-        $this->id_libro = $id_libro;
+        $this->libro = $libro;
 
         return $this;
     }
 
     public function getIdPedido(): ?Pedido
     {
-        return $this->id_pedido;
+        return $this->pedido;
     }
 
-    public function setIdPedido(?Pedido $id_pedido): static
+    public function setIdPedido(?Pedido $pedido): static
     {
-        $this->id_pedido = $id_pedido;
+        $this->pedido = $pedido;
 
         return $this;
     }

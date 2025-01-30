@@ -13,26 +13,24 @@ class Categoria
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: "id",type: 'integer')]
+    #[ORM\Column(name: "id", type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(name:'nombre',length: 100)]
+    #[ORM\Column(name: 'nombre', length: 100)]
     private ?string $nombre = null;
 
-    #[ORM\Column(name:'descripcion',length: 800)]
+    #[ORM\Column(name: 'descripcion', length: 800)]
     private ?string $descripcion = null;
-
-
 
     /**
      * @var Collection<int, Libro>
      */
     #[ORM\OneToMany(targetEntity: Libro::class, mappedBy: 'categoria')]
-    private Collection $categoria;
+    private Collection $libros;  // Cambié el nombre de "categoria" a "libros"
 
     public function __construct()
     {
-        $this->categoria = new ArrayCollection();
+        $this->libros = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -48,7 +46,6 @@ class Categoria
     public function setNombre(string $nombre): static
     {
         $this->nombre = $nombre;
-
         return $this;
     }
 
@@ -60,39 +57,33 @@ class Categoria
     public function setDescripcion(string $descripcion): static
     {
         $this->descripcion = $descripcion;
-
         return $this;
     }
-
-
 
     /**
      * @return Collection<int, Libro>
      */
-    public function getCategoria(): Collection
+    public function getLibros(): Collection  // Cambié getCategoria() a getLibros()
     {
-        return $this->categoria;
+        return $this->libros;
     }
 
-    public function addCategorium(Libro $categorium): static
+    public function addLibro(Libro $libro): static  // Renombré addCategorium() a addLibro()
     {
-        if (!$this->categoria->contains($categorium)) {
-            $this->categoria->add($categorium);
-            $categorium->setCategoria($this);
+        if (!$this->libros->contains($libro)) {
+            $this->libros->add($libro);
+            $libro->setCategoria($this);
         }
-
         return $this;
     }
 
-    public function removeCategorium(Libro $categorium): static
+    public function removeLibro(Libro $libro): static  // Renombré removeCategorium() a removeLibro()
     {
-        if ($this->categoria->removeElement($categorium)) {
-            // set the owning side to null (unless already changed)
-            if ($categorium->getCategoria() === $this) {
-                $categorium->setCategoria(null);
+        if ($this->libros->removeElement($libro)) {
+            if ($libro->getCategoria() === $this) {
+                $libro->setCategoria(null);
             }
         }
-
         return $this;
     }
 }
