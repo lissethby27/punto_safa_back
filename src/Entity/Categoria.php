@@ -13,77 +13,45 @@ class Categoria
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: "id", type: 'integer')]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['categoria', 'categoria_detalle'])]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'nombre', length: 100)]
-    private ?string $nombre = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['categoria', 'categoria_detalle'])]
+    private string $nombre;
 
-    #[ORM\Column(name: 'descripcion', length: 800)]
-    private ?string $descripcion = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['categoria', 'categoria_detalle'])]
+    private string $descripcion;
 
-    /**
-     * @var Collection<int, Libro>
-     */
-    #[ORM\OneToMany(targetEntity: Libro::class, mappedBy: 'categoria')]
-    private Collection $libros;  // Cambié el nombre de "categoria" a "libros"
-
-    public function __construct()
-    {
-        $this->libros = new ArrayCollection();
-    }
-
+    // Getters y Setters
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getNombre(): ?string
+    public function getNombre(): string
     {
         return $this->nombre;
     }
 
-    public function setNombre(string $nombre): static
+    public function setNombre(string $nombre): self
     {
         $this->nombre = $nombre;
+
         return $this;
     }
 
-    public function getDescripcion(): ?string
+    public function getDescripcion(): string
     {
         return $this->descripcion;
     }
 
-    public function setDescripcion(string $descripcion): static
+    public function setDescripcion(string $descripcion): self
     {
         $this->descripcion = $descripcion;
-        return $this;
-    }
 
-    /**
-     * @return Collection<int, Libro>
-     */
-    public function getLibros(): Collection  // Cambié getCategoria() a getLibros()
-    {
-        return $this->libros;
-    }
-
-    public function addLibro(Libro $libro): static  // Renombré addCategorium() a addLibro()
-    {
-        if (!$this->libros->contains($libro)) {
-            $this->libros->add($libro);
-            $libro->setCategoria($this);
-        }
-        return $this;
-    }
-
-    public function removeLibro(Libro $libro): static  // Renombré removeCategorium() a removeLibro()
-    {
-        if ($this->libros->removeElement($libro)) {
-            if ($libro->getCategoria() === $this) {
-                $libro->setCategoria(null);
-            }
-        }
         return $this;
     }
 }
