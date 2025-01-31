@@ -46,12 +46,12 @@ class Libro
     #[ORM\Column(name: 'num_paginas', type: Types::INTEGER, nullable: true)]
     private ?int $num_paginas = null;
 
-    #[ORM\ManyToOne(targetEntity: Autor::class, inversedBy: "libros")]
+    #[ORM\ManyToOne(targetEntity: Autor::class, cascade: ['persist', 'remove'], inversedBy: "libros")]
     #[ORM\JoinColumn(name: 'id_autor', nullable: false)]
     private ?Autor $autor = null;
 
-    #[ORM\ManyToOne(targetEntity: Categoria::class, inversedBy: "libros")]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Categoria::class, cascade: ['persist', 'remove'], inversedBy: "libros")]
+    #[ORM\JoinColumn(name: "id_categoria", nullable: false)]
     private ?Categoria $categoria = null;
 
 

@@ -19,7 +19,7 @@ final class AutorController extends AbstractController
         return $this->json($autorRepository->findAll());
     }
 
-    #[Route('/{id<\d+>}', name: 'autor_by_id', methods: ['GET'])]
+    #[Route('/{id}', name: 'autor_by_id', methods: ['GET'])]
     public function getById(Autor $autor): JsonResponse
     {
         return $this->json($autor);

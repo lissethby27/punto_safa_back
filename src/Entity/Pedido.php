@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PedidoRepository::class)]
 #[ORM\Table(name: "pedido", schema: "puntosafa")]
@@ -16,28 +17,48 @@ class Pedido
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['pedido:read'])]
     private ?int $id = null;
 
     #[ORM\Column(name: "fecha", type: Types::DATETIME_MUTABLE)]
+    #[Groups(['pedido:read'])]
     private ?\DateTimeInterface $fecha = null;
 
     #[ORM\Column(name: "total", type: Types::FLOAT)]
+    #[Groups(['pedido:read'])]
     private ?float $total = null;
 
     #[ORM\Column(name: "estado", type: Types::STRING, length: 100)]
+    #[Groups(['pedido:read'])]
     private ?string $estado = null;
 
     #[ORM\Column(name: "direccion_entrega", type: Types::STRING, length: 200)]
+    #[Groups(['pedido:read'])]
     private ?string $direccion_entrega = null;
 
-    #[ORM\Column (name: "id_cliente", type: Types::INTEGER)]
-    private ?int $id_cliente = null;
+
+    #[ORM\OneToOne(targetEntity: Cliente::class,  cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: "id_cliente", referencedColumnName: "id", nullable: false)]
+    #[Groups(['pedido:read'])]
+    private ?Cliente $cliente=null;
 
     /**
      * @var Collection<int, LineaPedido>
      */
-    #[ORM\OneToMany(targetEntity: LineaPedido::class, mappedBy: 'pedido')]
+    #[ORM\OneToMany(targetEntity: LineaPedido::class, mappedBy: 'pedido', cascade: ['persist', 'remove'])]
+    #[Groups(['pedido:read'])]
     private Collection $lineaPedidos;
+
+    public function getCliente(): ?Cliente
+    {
+        return $this->cliente;
+    }
+
+    public function setCliente(?Cliente $cliente): static
+    {
+        $this->cliente = $cliente;
+        return $this;
+    }
 
     public function __construct()
     {
@@ -97,18 +118,6 @@ class Pedido
         return $this;
     }
 
-    public function getIdCliente(): ?int
-    {
-        return $this->id_cliente;
-    }
-
-    public function setIdCliente(int $id_cliente): static
-    {
-        $this->id_cliente = $id_cliente;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, LineaPedido>
      */
@@ -138,4 +147,6 @@ class Pedido
 
         return $this;
     }
+
+
 }
