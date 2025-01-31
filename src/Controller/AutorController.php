@@ -24,15 +24,26 @@ final class AutorController extends AbstractController
     #[Route('/all', name: 'app_autor', methods: ['GET'])]
     public function getAutor(AutorRepository $autorRepository): JsonResponse
     {
+        // Obtener todos los autores de la base de datos
         $autores = $autorRepository->findAll();
+
+        // Verificar si no hay autores en la base de datos
+        if (empty($autores)) {
+            return $this->json(['error' => 'No se encontraron autores'], 404);
+        }
+
+        // Serializar los autores a formato JSON
         $json = $this->serializer->serialize($autores, 'json', [
             'circular_reference_handler' => function ($object) {
-                return $object->getId();
+                return $object->getId(); // Manejo de referencia circular
             },
         ]);
 
+        // Retornar la respuesta en formato JSON
         return new JsonResponse($json, 200, [], true);
     }
+
+
 
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
     public function getById(Autor $autor): JsonResponse
@@ -111,6 +122,25 @@ final class AutorController extends AbstractController
 
         return $this->json(['mensaje' => 'Datos actualizados correctamente']);
     }
+
+    #[Route('/buscar/{nombre}', name: 'buscar_por_nombre', methods: ['GET'])]
+    public function buscarPorNombre(string $nombre, AutorRepository $autorRepository): JsonResponse
+    {
+        $autores = $autorRepository->buscarPorNombreParcial($nombre);
+
+        if (!$autores) {
+            return $this->json(['error' => 'No se encontraron autores con ese nombre'], 404);
+        }
+
+        $json = $this->serializer->serialize($autores, 'json', [
+            'circular_reference_handler' => fn($object) => $object->getId(),
+        ]);
+
+        return new JsonResponse($json, 200, [], true);
+    }
+
+
+
 
 
     #[Route('/{id}', name: 'autor_delete_by_id', methods: ['DELETE'])]

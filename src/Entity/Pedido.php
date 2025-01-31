@@ -30,8 +30,10 @@ class Pedido
     #[ORM\Column(name: "direccion_entrega", type: Types::STRING, length: 200)]
     private ?string $direccion_entrega = null;
 
-    #[ORM\Column (name: "id_cliente", type: Types::INTEGER)]
-    private ?int $id_cliente = null;
+    #[ORM\ManyToOne(targetEntity: Cliente::class, inversedBy: 'pedidos')]
+    #[ORM\JoinColumn(name: "id_cliente", referencedColumnName: "id")]
+    private ?Cliente $cliente = null;
+
 
     /**
      * @var Collection<int, LineaPedido>
@@ -97,17 +99,16 @@ class Pedido
         return $this;
     }
 
-    public function getIdCliente(): ?int
+    public function getCliente(): ?Cliente
     {
-        return $this->id_cliente;
+        return $this->cliente;
     }
 
-    public function setIdCliente(int $id_cliente): static
+    public function setCliente(?Cliente $cliente): void
     {
-        $this->id_cliente = $id_cliente;
-
-        return $this;
+        $this->cliente = $cliente;
     }
+
 
     /**
      * @return Collection<int, LineaPedido>
