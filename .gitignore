@@ -15,8 +15,6 @@
 ###< phpunit/phpunit ###
 
 ###> symfony/phpunit-bridge ###
-.phpunit.result.cache
-/phpunit.xml
 ###< symfony/phpunit-bridge ###
 
 ###> symfony/asset-mapper ###
@@ -29,3 +27,4 @@ tests/
 
 composer.lock
 .env
+/templates/pedido/index.html.twig
