@@ -44,7 +44,6 @@ class LibroController extends AbstractController
 
 
 
-
     //Guardar libro en la base de datos
     #[Route('/guardar', name: 'guardar_libro', methods: ['POST'])]
     public function crearLibro(Request $request): JsonResponse
@@ -136,7 +135,7 @@ class LibroController extends AbstractController
 
                 },
                 'lineaPedidos' => function ($innerObject) {
-                    return 'Dato restringido';                },
+                    return 'Dato restringido';                }, // Evitar serialización de LineaPedido. Queda pendiente de resolver la duda, po rposible requirimiento de la app
 
                 'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null, // Formatear fecha de publicación
 
