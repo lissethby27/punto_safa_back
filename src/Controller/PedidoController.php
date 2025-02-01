@@ -17,35 +17,15 @@ use Symfony\Component\Serializer\SerializerInterface;
 final class PedidoController extends AbstractController
 {
 
-
-    public function __construct(PedidoRepository $pedidoRepository, SerializerInterface $serializer)
-
+    #[Route('/all', name: 'get_all_pedidos', methods: ['GET'])]
+    public function getAll(PedidoRepository $pedidoRepository, SerializerInterface $serializer): Response
     {
+        $pedidos = $pedidoRepository->findAll();
 
-        $this->pedidoRepository = $pedidoRepository;
+        // Serialize the pedidos with a defined group
+        $json = $serializer->serialize($pedidos, 'json', ['groups' => 'pedido:read']);
 
-        $this->serializer = $serializer;
-
-    }
-    #[Route('/all', name: 'list_pedidos', methods: ['GET'])]
-    public function listPedidos(): JsonResponse
-
-    {
-
-        // Fetch all Pedido entities
-
-        $pedidos = $this->pedidoRepository->findAll();
-
-
-        // Serialize the data
-
-        $data = $this->serializer->serialize($pedidos, 'json', ['groups' => ['pedido:read']]);
-
-
-        // Return the response
-
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
-
+        return new Response($json, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
     #[Route('/save', name: 'save_pedidos', methods: ['POST'])]
