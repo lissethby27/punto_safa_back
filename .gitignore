@@ -25,3 +25,6 @@
 ###< symfony/asset-mapper ###
 
 .idea/
+composer.lock
+.env
+tests/
