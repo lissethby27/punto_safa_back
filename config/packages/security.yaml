@@ -39,12 +39,12 @@ security:
         - { path: ^/api,       roles: PUBLIC_ACCESS }
         - { path: ^/autor,     roles: PUBLIC_ACCESS }
         - { path: ^/autor/\d+, roles: PUBLIC_ACCESS }
-        #- { path: ^/autor/guardar, roles: PUBLIC_ACCESS }
-        - {path: ^//libro/allLibros, roles: PUBLIC_ACCESS}
+        - { path: ^/autor/guardar, roles: PUBLIC_ACCESS }
+        - {path: ^/libro/all, roles: PUBLIC_ACCESS}
         - {path: ^/libro/\d+, roles: PUBLIC_ACCESS}
-        #- {path: ^//libro/guardarLibro, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
-        #- {path: ^/libro/editarLibro/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
-        #- {path: ^/libro/eliminarLibro/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - {path: ^/libro/guardar, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - {path: ^/libro/editar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - {path: ^/libro/eliminar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
 
 
 
