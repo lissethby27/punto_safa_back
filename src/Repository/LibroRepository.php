@@ -16,6 +16,15 @@ class LibroRepository extends ServiceEntityRepository
         parent::__construct($registry, Libro::class);
     }
 
+    public function testQuery()
+    {
+        return $this->createQueryBuilder('l')
+            ->select('l.id, l.titulo')
+            ->getQuery()
+            ->getResult();
+    }
+
+
     //    /**
     //     * @return Libro[] Returns an array of Libro objects
     //     */

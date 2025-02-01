@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\LineaPedidoRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: LineaPedidoRepository::class)]
 #[ORM\Table(name: "linea_pedido", schema: "puntosafa")]
@@ -13,26 +12,20 @@ class LineaPedido
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column (name:'id',type: "integer")]
-    #[Groups(['linea_pedido:read'])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'cantidad', type: "integer")]
-    #[Groups(['linea_pedido:read'])]
     private ?int $cantidad = null;
 
     #[ORM\Column(name: 'precio_unitario', type: "float")]
-    #[Groups(['linea_pedido:read'])]
     private ?float $precio_unitario = null;
 
     #[ORM\ManyToOne(inversedBy: 'lineaPedidos')]
     #[ORM\JoinColumn(name: "id_libro", nullable: false)]
-    #[Groups(['linea_pedido:read'])]
     private ?Libro $libro = null;
 
-
     #[ORM\ManyToOne(inversedBy: 'lineaPedidos')]
-    #[ORM\JoinColumn(name: "id_libro", referencedColumnName: "id", nullable: false)]
-    #[Groups(['linea_pedido:read'])]
+    #[ORM\JoinColumn(name: "id_pedido", referencedColumnName: "id", nullable: false)]
     private ?Pedido $pedido = null;
 
 
@@ -66,48 +59,27 @@ class LineaPedido
         return $this;
     }
 
-    public function getIdLibro(): ?int
+    public function getLibro(): ?Libro
     {
-        return $this->id_libro;
+        return $this->libro;
     }
 
-    public function setIdLibro(?int $id_libro): void
+    public function setLibro(?Libro $libro): static
     {
-        $this->id_libro = $id_libro;
+        $this->libro = $libro;
+
+        return $this;
     }
 
-    public function getIdPedido(): ?int
+    public function getIdPedido(): ?Pedido
     {
-        return $this->id_pedido;
+        return $this->pedido;
     }
 
-    public function setIdPedido(?int $id_pedido): void
+    public function setIdPedido(?Pedido $pedido): static
     {
-        $this->id_pedido = $id_pedido;
+        $this->pedido = $pedido;
+
+        return $this;
     }
-
-//    public function getLibro(): ?Libro
-//    {
-//        return $this->libro;
-//    }
-//
-//    public function setLibro(?Libro $libro): void
-//    {
-//        $this->libro = $libro;
-//    }
-
-//    public function getPedido(): ?Pedido
-//    {
-//        return $this->pedido;
-//    }
-//
-//    public function setPedido(?Pedido $pedido): void
-//    {
-//        $this->pedido = $pedido;
-//    }
-
-
-
-
-
 }

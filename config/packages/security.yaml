@@ -36,8 +36,19 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/, roles: PUBLIC_ACCESS }
-        - { path: ^/pedido, roles: PUBLIC_ACCESS }
+        - { path: ^/api,       roles: PUBLIC_ACCESS }
+        - { path: ^/autor,     roles: PUBLIC_ACCESS }
+        - { path: ^/autor/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/autor/guardar, roles: PUBLIC_ACCESS }
+        - {path: ^/libro/all, roles: PUBLIC_ACCESS}
+        - {path: ^/libro/\d+, roles: PUBLIC_ACCESS}
+        - {path: ^/libro/guardar, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - {path: ^/libro/editar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - {path: ^/libro/eliminar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+
+
+
+
 
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

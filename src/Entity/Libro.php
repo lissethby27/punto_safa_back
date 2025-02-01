@@ -2,64 +2,54 @@
 
 namespace App\Entity;
 
-use AllowDynamicProperties;
 use App\Repository\LibroRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[AllowDynamicProperties] #[ORM\Entity(repositoryClass: LibroRepository::class)]
-#[ORM\Table(name: "libro", schema: "puntosafa")]
+#[ORM\Entity(repositoryClass: LibroRepository::class)]
 class Libro
 {
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: "integer")]
+    #[ORM\Column(name: 'id', type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'titulo', type: "string", length: 255)]
+    #[ORM\Column(name: 'titulo', type: Types::STRING, length: 255)]
     private ?string $titulo = null;
 
-    #[ORM\Column(name: 'resumen', type: 'string', length: 800, nullable: true)]
+    #[ORM\Column(name: 'resumen', type: Types::STRING, length: 800, nullable: true)]
     private ?string $resumen = null;
 
     #[ORM\Column(name: 'anio_publicacion', type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $anio_publicacion = null;
+    private ?\DateTimeInterface $anioPublicacion = null;
 
     #[ORM\Column(name: 'precio', type: Types::FLOAT)]
     private ?float $precio = null;
 
-    #[ORM\Column(name: 'ISBN', type: "string", length: 20)]
+    #[ORM\Column(name: 'ISBN', type: Types::STRING, length: 20)]
     private ?string $ISBN = null;
 
-    #[ORM\Column(name: 'editorial', type: "string", length: 200)]
+    #[ORM\Column(name: 'editorial', type: Types::STRING, length: 200)]
     private ?string $editorial = null;
 
-    #[ORM\Column(name: 'imagen', type: "string", length: 500)]
+    #[ORM\Column(name: 'imagen', type: Types::STRING, length: 500)]
     private ?string $imagen = null;
 
-    #[ORM\Column(name: 'idioma', type: "string", length: 100, nullable: true)]
+    #[ORM\Column(name: 'idioma', type: Types::STRING, length: 100, nullable: true)]
     private ?string $idioma = null;
 
     #[ORM\Column(name: 'num_paginas', type: Types::INTEGER, nullable: true)]
-    private ?int $num_paginas = null;
+    private ?int $numPaginas = null;
 
-    #[ORM\ManyToOne(targetEntity: Autor::class, cascade: ['persist', 'remove'], inversedBy: "libros")]
+    #[ORM\ManyToOne(targetEntity: Autor::class, inversedBy: "libros")]
     #[ORM\JoinColumn(name: 'id_autor', nullable: false)]
     private ?Autor $autor = null;
 
-    #[ORM\ManyToOne(targetEntity: Categoria::class, cascade: ['persist', 'remove'], inversedBy: "libros")]
-    #[ORM\JoinColumn(name: "id_categoria", nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Categoria::class, inversedBy: "libros")]
+    #[ORM\JoinColumn(name: "id_categoria", referencedColumnName: "id", nullable: false)]
     private ?Categoria $categoria = null;
-
-
-    /**
-     * @var Collection<int, Resena>
-     */
-    // #[ORM\OneToMany(targetEntity: Resena::class, mappedBy: 'libro')]
-    // private Collection $resenas;
 
     /**
      * @var Collection<int, LineaPedido>
@@ -69,7 +59,6 @@ class Libro
 
     public function __construct()
     {
-        $this->libro = new ArrayCollection();
         $this->lineaPedidos = new ArrayCollection();
     }
 
@@ -86,7 +75,6 @@ class Libro
     public function setTitulo(string $titulo): static
     {
         $this->titulo = $titulo;
-
         return $this;
     }
 
@@ -98,19 +86,17 @@ class Libro
     public function setResumen(?string $resumen): static
     {
         $this->resumen = $resumen;
-
         return $this;
     }
 
     public function getAnioPublicacion(): ?\DateTimeInterface
     {
-        return $this->anio_publicacion;
+        return $this->anioPublicacion;
     }
 
-    public function setAnioPublicacion(\DateTimeInterface $anio_publicacion): static
+    public function setAnioPublicacion(\DateTimeInterface $anioPublicacion): static
     {
-        $this->anio_publicacion = $anio_publicacion;
-
+        $this->anioPublicacion = $anioPublicacion;
         return $this;
     }
 
@@ -122,7 +108,6 @@ class Libro
     public function setPrecio(float $precio): static
     {
         $this->precio = $precio;
-
         return $this;
     }
 
@@ -134,7 +119,6 @@ class Libro
     public function setISBN(string $ISBN): static
     {
         $this->ISBN = $ISBN;
-
         return $this;
     }
 
@@ -146,7 +130,6 @@ class Libro
     public function setEditorial(string $editorial): static
     {
         $this->editorial = $editorial;
-
         return $this;
     }
 
@@ -158,7 +141,6 @@ class Libro
     public function setImagen(string $imagen): static
     {
         $this->imagen = $imagen;
-
         return $this;
     }
 
@@ -170,19 +152,17 @@ class Libro
     public function setIdioma(?string $idioma): static
     {
         $this->idioma = $idioma;
-
         return $this;
     }
 
     public function getNumPaginas(): ?int
     {
-        return $this->num_paginas;
+        return $this->numPaginas;
     }
 
-    public function setNumPaginas(int $num_paginas): static
+    public function setNumPaginas(?int $numPaginas): static
     {
-        $this->num_paginas = $num_paginas;
-
+        $this->numPaginas = $numPaginas;
         return $this;
     }
 
@@ -194,11 +174,8 @@ class Libro
     public function setAutor(?Autor $autor): static
     {
         $this->autor = $autor;
-
         return $this;
     }
-
-
 
     public function getCategoria(): ?Categoria
     {
@@ -208,37 +185,6 @@ class Libro
     public function setCategoria(?Categoria $categoria): static
     {
         $this->categoria = $categoria;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Resena>
-     */
-    public function getLibro(): Collection
-    {
-        return $this->libro;
-    }
-
-    public function addLibro(Resena $libro): static
-    {
-        if (!$this->libro->contains($libro)) {
-            $this->libro->add($libro);
-            $libro->setIdLibro($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLibro(Resena $libro): static
-    {
-        if ($this->libro->removeElement($libro)) {
-            // set the owning side to null (unless already changed)
-            if ($libro->getIdLibro() === $this) {
-                $libro->setIdLibro(null);
-            }
-        }
-
         return $this;
     }
 
@@ -254,21 +200,18 @@ class Libro
     {
         if (!$this->lineaPedidos->contains($lineaPedido)) {
             $this->lineaPedidos->add($lineaPedido);
-            $lineaPedido->setIdLibro($this);
+            $lineaPedido->setLibro($this);
         }
-
         return $this;
     }
 
     public function removeLineaPedido(LineaPedido $lineaPedido): static
     {
         if ($this->lineaPedidos->removeElement($lineaPedido)) {
-            // set the owning side to null (unless already changed)
-            if ($lineaPedido->getIdLibro() === $this) {
-                $lineaPedido->setIdLibro(null);
+            if ($lineaPedido->getLibro() === $this) {
+                $lineaPedido->setLibro(null);
             }
         }
-
         return $this;
     }
 }
