@@ -127,6 +127,8 @@ class LibroController extends AbstractController
 
         $json = $this->serializer->serialize($libro, 'json', [
             AbstractNormalizer::CALLBACKS => [
+                'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null, // Formatear fecha de publicación
+
                 'categoria' => function ($innerObject) {
                     return $innerObject ? $innerObject->getNombre() : null;
                 },
@@ -137,7 +139,6 @@ class LibroController extends AbstractController
                 'lineaPedidos' => function ($innerObject) {
                     return 'Dato restringido';                }, // Evitar serialización de LineaPedido. Queda pendiente de resolver la duda, po rposible requirimiento de la app
 
-                'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null, // Formatear fecha de publicación
 
 
             ],
