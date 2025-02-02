@@ -16,13 +16,17 @@ class LibroRepository extends ServiceEntityRepository
         parent::__construct($registry, Libro::class);
     }
 
-    public function testQuery()
+
+    public function findAllPaginated(int $pagina, int $limite)
     {
-        return $this->createQueryBuilder('l')
-            ->select('l.id, l.titulo')
-            ->getQuery()
-            ->getResult();
+        $query = $this->createQueryBuilder('l')
+            ->setFirstResult(($pagina - 1) * $limite)
+            ->setMaxResults($limite)
+            ->getQuery();
+
+        return $query->getResult();
     }
+
 
 
     //    /**

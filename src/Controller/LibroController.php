@@ -52,9 +52,36 @@ class LibroController extends AbstractController
         $datosLibro = json_decode($request->getContent(), true);
 
         // Validar datos
-        if (!isset($datosLibro['titulo'], $datosLibro['precio'], $datosLibro['ISBN'], $datosLibro['editorial'], $datosLibro['autor'], $datosLibro['categoria'], $datosLibro['anio_publicacion'], $datosLibro['num_paginas'], $datosLibro['imagen'], $datosLibro['idioma'], $datosLibro['resumen'], $datosLibro['num_paginas'], $datosLibro['imagen'])) {
+        if (!isset($datosLibro['titulo'], $datosLibro['precio'], $datosLibro['ISBN'], $datosLibro['editorial'],
+            $datosLibro['autor'], $datosLibro['categoria'], $datosLibro['anio_publicacion'],
+            $datosLibro['num_paginas'], $datosLibro['imagen'], $datosLibro['idioma'], $datosLibro['resumen'])) {
             return new JsonResponse(['mensaje' => 'Faltan datos obligatorios'], 400);
         }
+
+        // Validar que el precio es un número positivo
+        if (!is_numeric($datosLibro['precio']) || $datosLibro['precio'] < 0) {
+            return new JsonResponse(['mensaje' => 'El precio debe ser un número positivo'], 400);
+        }
+
+        // Validar que el año de publicación es una fecha válida
+        if (!\DateTime::createFromFormat('Y-m-d', $datosLibro['anio_publicacion'])) {
+            return new JsonResponse(['mensaje' => 'Formato de fecha inválido, use YYYY-MM-DD'], 400);
+        }
+
+
+        // Validar el ISBN (longitud y solo números o guiones)
+        if (!preg_match('/^\d{10}(\d{3})?$/', str_replace('-', '', $datosLibro['ISBN']))) {
+            return new JsonResponse(['mensaje' => 'Formato de ISBN inválido'], 400);
+        }
+
+        //Validar que el ISB no exista en la base de datos
+        $libro = $this->libroRepository->findOneBy(['ISBN' => $datosLibro['ISBN']]);
+        if ($libro) {
+            return new JsonResponse(['mensaje' => 'El ISBN ya está en uso'], 400);
+        }
+
+
+
 
         // Crear una nueva instancia del libro
         $libro = new Libro();
@@ -103,7 +130,7 @@ class LibroController extends AbstractController
                 'categoria' => fn($innerObject) => $innerObject ? $innerObject->getNombre() : null,
                 'autor' => fn($innerObject) => $innerObject ? $innerObject->getNombre() . ' ' . $innerObject->getApellidos() : null,
                 'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null, // Formatear fecha de publicación
-                'lineaPedidos' => fn($innerObject) => null, // Evitar serialización de LineaPedido
+                'lineaPedidos' => fn($innerObject) => null, // Evitar serialización de LineaPedido, pendiente de resolver la duda por posible requerimiento de la app
             ],
             // Evitar referencias circulares en la serialización
             'circular_reference_handler' => fn($object) => $object->getId(),
@@ -121,6 +148,7 @@ class LibroController extends AbstractController
     #[Route('/{id}', name: 'libro_by_id', methods: ['GET'])]
     public function getById(Libro $libro): JsonResponse
     {
+        // Serializar el libro a JSON y devolverlo como respuesta HTTP (si existe) o un mensaje de error
         if (!$libro) {
             return $this->json(['mensaje' => 'Libro no encontrado'], 404);
         }
