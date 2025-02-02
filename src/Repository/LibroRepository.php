@@ -17,15 +17,8 @@ class LibroRepository extends ServiceEntityRepository
     }
 
 
-    public function findAllPaginated(int $pagina, int $limite)
-    {
-        $query = $this->createQueryBuilder('l')
-            ->setFirstResult(($pagina - 1) * $limite)
-            ->setMaxResults($limite)
-            ->getQuery();
 
-        return $query->getResult();
-    }
+
 
 
 

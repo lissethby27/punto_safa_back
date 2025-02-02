@@ -113,21 +113,34 @@ class LibroController extends AbstractController
 
 
     //Lista de todos los libros existentes en la base de datos
+    //Código optimizado para evitar referencias circulares y mostrar datos relacionados de forma más clara
+    //La idea es que en una misma página no se cargue todos los libros, sino que se paginen, así no es infinita la carga de libros
     #[Route('/all', name: 'all_libros', methods: ['GET'])]
-    public function listarLibros(LibroRepository $libroRepository): JsonResponse
+    public function listarLibros(Request $request, LibroRepository $libroRepository): JsonResponse
     {
-        // Obtener todos los libros
-        $listaLibros = $libroRepository->findAll();
+        // Obtener parámetros de paginación que es opcional y por defecto es 1 y 10 respectivamente
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 10);
 
-        // Serializar los libros a JSON y devolverlos como respuesta HTTP
+        // Crear consulta personalizada para evitar referencias circulares y mostrar datos relacionados de forma más clara
+        $query = $libroRepository->createQueryBuilder('l')
+            ->getQuery();
+
+        // Paginar resultados y serializar a JSON con opciones personalizadas para evitar referencias circulares y mostrar datos relacionados de forma más clara
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query);
+        $paginator->getQuery()
+            ->setFirstResult($limit * ($page - 1))
+            ->setMaxResults($limit);
+
+        $listaLibros = iterator_to_array($paginator);
+
         $jsonLibros = $this->serializer->serialize($listaLibros, 'json', [
             AbstractNormalizer::CALLBACKS => [
                 'categoria' => fn($innerObject) => $innerObject ? $innerObject->getNombre() : null,
                 'autor' => fn($innerObject) => $innerObject ? $innerObject->getNombre() . ' ' . $innerObject->getApellidos() : null,
-                'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null, // Formatear fecha de publicación
-                'lineaPedidos' => fn($innerObject) => null, // Evitar serialización de LineaPedido, pendiente de resolver la duda por posible requerimiento de la app
+                'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null,
+                'lineaPedidos' => fn($innerObject) => null,
             ],
-            // Evitar referencias circulares en la serialización
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
@@ -139,7 +152,7 @@ class LibroController extends AbstractController
 
 
 
-    //Listar un libro por su id
+    //Llamar a  un libro por su id
     #[Route('/{id}', name: 'libro_by_id', methods: ['GET'])]
     public function getById(Libro $libro): JsonResponse
     {
