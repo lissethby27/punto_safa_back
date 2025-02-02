@@ -2,19 +2,18 @@
 
 namespace App\Controller;
 
-use App\Entity\LineaPedido;
 use App\Entity\Resena;
+use App\Repository\LibroRepository;
 use App\Repository\LineaPedidoRepository;
 use App\Repository\PedidoRepository;
 use App\Repository\ResenaRepository;
 use App\Repository\UsuarioRepository;
-use App\Repository\LibroRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[Route("/resena")]
 class ResenaController extends AbstractController
@@ -45,10 +44,28 @@ class ResenaController extends AbstractController
         $this->pedidoRepository = $pedidoRepository;
     }
 
+    private function verificarCompra(int $usuarioId, int $libroId): bool
+    {
+        // Verificar si el usuario ha comprado el libro
+        $pedidos = $this->pedidoRepository->findByUsuario($usuarioId);
+        foreach ($pedidos as $pedido) {
+            $lineas = $this->lineaPedidoRepository->findByPedido($pedido->getId());
+            foreach ($lineas as $linea) {
+                if ($linea->getLibro()->getId() === $libroId) {
+                    return true; // El usuario compró el libro
+                }
+            }
+        }
+        return false; // El usuario no ha comprado el libro
+    }
+
+
+
 
     #[Route("/nueva", name: "nueva_resena", methods: ["POST"])]
     public function nueva(Request $request): JsonResponse
     {
+        // Decodificar los datos de la petición y validar que existen porque son requeridos para crear una reseña
         $dataResena = json_decode($request->getContent(), true);
 
         if (!isset($dataResena['usuario'], $dataResena['libro'], $dataResena['calificacion'], $dataResena['comentario'])) {
@@ -65,8 +82,16 @@ class ResenaController extends AbstractController
             return new JsonResponse(['mensaje' => 'Libro no encontrado.'], Response::HTTP_NOT_FOUND);
         }
 
-       //Tengo que verificar SI EL USUARIO HA COMPRADO EL LIBRO PARA PODER HACER LA RESEÑA CORRESPONDIENTE
+        // Verificar si el usuario ha comprado el libro
+        if (!$this->verificarCompra($usuario->getId(), $libro->getId())) {
+            return new JsonResponse(['mensaje' => 'El usuario debe haber comprado el libro para poder dejar una reseña.'], Response::HTTP_FORBIDDEN);
+        }
 
+        // Verificar si el usuario ya ha reseñado el libro
+        $yaReseno = $this->resenaRepository->usuarioYaResenoLibro($usuario->getId(), $libro->getId());
+        if ($yaReseno) {
+            return new JsonResponse(['mensaje' => 'Solo puedes hacer una reseña por libro.'], Response::HTTP_CONFLICT);
+        }
 
         // Verificar si el usuario ya ha hecho una reseña para este libro (Error 409 Conflict)
         $yaReseno = $this->resenaRepository->usuarioYaResenoLibro($usuario->getId(), $libro->getId());
@@ -79,6 +104,12 @@ class ResenaController extends AbstractController
             return new JsonResponse(['mensaje' => 'La calificación debe ser un número entre 1 y 5.'], Response::HTTP_BAD_REQUEST);
         }
 
+        //Validar que el comentario no esté vacío ni sea nulo ni tenga más de 200 caracteres
+        if (empty($dataResena['comentario']) || strlen($dataResena['comentario']) > 200) {
+            return new JsonResponse(['mensaje' => 'El comentario no puede estar vacío ni tener más de 200 caracteres.'], Response::HTTP_BAD_REQUEST);
+        }
+
+
         $nuevaResena = new Resena();
         $nuevaResena->setUsuario($usuario);
         $nuevaResena->setLibro($libro);
@@ -89,6 +120,7 @@ class ResenaController extends AbstractController
         $this->entityManager->persist($nuevaResena);
         $this->entityManager->flush();
 
+        // Devolver la nueva reseña creada con el código 201 Created
         return new JsonResponse([
             'id'           => $nuevaResena->getId(),
             'usuario'      => $nuevaResena->getUsuario()->getId(),
@@ -128,6 +160,7 @@ class ResenaController extends AbstractController
             return new JsonResponse(['mensaje' => 'Reseña no encontrada.'], Response::HTTP_NOT_FOUND);
         }
 
+        // Devolver la reseña con el código 200 OK
         return new JsonResponse([
             'id'           => $resena->getId(),
             'usuario'      => $resena->getUsuario()->getId(),
@@ -144,7 +177,9 @@ class ResenaController extends AbstractController
 
     {
         $resena = $this->resenaRepository->find($id);
+        $resena->setFecha(new \DateTime('now'));
 
+        //Si la reseña no existe, devolver un error 404 Not Found
         if (!$resena) {
             return new JsonResponse(['mensaje' => 'Reseña no encontrada.'], Response::HTTP_NOT_FOUND);
         }
@@ -184,11 +219,9 @@ class ResenaController extends AbstractController
             $resena->setFecha(new \DateTime($dataResena['fecha']));
         }
 
-
-
         $this->entityManager->flush();
 
-        return new JsonResponse(['mensaje' => 'Reseña actualizada correctamente.'], Response::HTTP_OK);
+        return new JsonResponse(['mensaje' => 'Reseña actualizada correctamente.', 'fecha_edicion' => $resena->getFechaFormatted()], Response::HTTP_OK);
 
     }
 
