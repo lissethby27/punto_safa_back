@@ -312,6 +312,14 @@ class LibroController extends AbstractController
             return new JsonResponse(['mensaje' => 'Libro no encontrado, inténtelo de nuevo'], 404);
         }
 
+        $lineasPedido = $libro->getLineaPedidos();
+        if (count($lineasPedido) > 0) {
+            return new JsonResponse(['mensaje' => 'No se puede eliminar un libro con pedidos activos'], 400);
+        }
+
+
+
+
         $entityManager->remove($libro);
         $entityManager->flush();
 
