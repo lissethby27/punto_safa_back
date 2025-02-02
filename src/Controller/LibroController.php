@@ -80,9 +80,6 @@ class LibroController extends AbstractController
             return new JsonResponse(['mensaje' => 'El ISBN ya está en uso'], 400);
         }
 
-
-
-
         // Crear una nueva instancia del libro
         $libro = new Libro();
         $libro->setTitulo($datosLibro['titulo'])
@@ -95,19 +92,17 @@ class LibroController extends AbstractController
             ->setIdioma($datosLibro['idioma'] ?? null)
             ->setNumPaginas($datosLibro['num_paginas'] ?? null);
 
-        // Obtener el Autor desde el repositorio
+        // Obtener el Autor y Categoria desde el repositorio para asignarlos al libro (si existen)
         $autor = $this->autorRepository->find($datosLibro['autor']);
-        if (!$autor) {
-            return new JsonResponse(['mensaje' => 'Autor no encontrado'], 400);
-        }
-        $libro->setAutor($autor);
-
-        // Obtener la Categoria desde el repositorio
         $categoria = $this->categoriaRepository->find($datosLibro['categoria']);
-        if (!$categoria) {
-            return new JsonResponse(['mensaje' => 'Categoría no encontrada'], 400);
+
+        if (!$autor || !$categoria) {
+            return new JsonResponse(['mensaje' => 'Autor o categoría no encontrados'], 400);
         }
+
+        $libro->setAutor($autor);
         $libro->setCategoria($categoria);
+
 
         // Persistir el libro en la base de datos
         $this->entityManager->persist($libro);
