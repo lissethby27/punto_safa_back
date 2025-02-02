@@ -320,10 +320,12 @@ class LibroController extends AbstractController
 
 
 
+        $titulo = $libro->getTitulo();
         $entityManager->remove($libro);
         $entityManager->flush();
 
-        return new JsonResponse(['mensaje' => 'Libro eliminado correctamente'], 200);
+        return new JsonResponse(['mensaje' => "Libro '$titulo' eliminado correctamente"], 200);
+
     }
 
 }
