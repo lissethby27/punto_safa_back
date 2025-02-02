@@ -58,6 +58,11 @@ class LibroController extends AbstractController
             return new JsonResponse(['mensaje' => 'Faltan datos obligatorios'], 400);
         }
 
+        //Validar el título no puedde tener más de 255 caracteres
+        if (strlen($datosLibro['titulo']) > 255) {
+            return new JsonResponse(['mensaje' => 'El título no puede tener más de 255 caracteres'], 400);
+        }
+
         // Validar que el precio es un número positivo
         if (!is_numeric($datosLibro['precio']) || $datosLibro['precio'] < 0) {
             return new JsonResponse(['mensaje' => 'El precio debe ser un número positivo'], 400);
@@ -78,6 +83,11 @@ class LibroController extends AbstractController
         $libro = $this->libroRepository->findOneBy(['ISBN' => $datosLibro['ISBN']]);
         if ($libro) {
             return new JsonResponse(['mensaje' => 'El ISBN ya está en uso'], 400);
+        }
+
+        //Máximo de caracteres en el resumen de 800
+        if (strlen($datosLibro['resumen']) > 800) {
+            return new JsonResponse(['mensaje' => 'El resumen no puede tener más de 800 caracteres'], 400);
         }
 
         // Crear una nueva instancia del libro
@@ -187,26 +197,31 @@ class LibroController extends AbstractController
 
 
     #[Route('/editar/{id}', name: 'editar_libro', methods: ['PUT'])]
-    public function editar(
-        int $id,
-        Request $request
-    ): JsonResponse {
+    public function editar(int $id, Request $request): JsonResponse
+    {
+        // Buscar el libro en la base de datos
         $libro = $this->entityManager->getRepository(Libro::class)->find($id);
-
         if (!$libro) {
             return new JsonResponse(['mensaje' => 'Libro no encontrado, inténtelo de nuevo'], 404);
         }
 
+        // Decodificar el JSON del request
         $editarLibro = json_decode($request->getContent(), true);
 
         try {
             // Editar título
             if (isset($editarLibro['titulo'])) {
+                if (strlen($editarLibro['titulo']) > 255) {
+                    return new JsonResponse(['mensaje' => 'El título no puede tener más de 255 caracteres'], 400);
+                }
                 $libro->setTitulo($editarLibro['titulo']);
             }
 
             // Editar resumen
             if (isset($editarLibro['resumen'])) {
+                if (strlen($editarLibro['resumen']) > 800) {
+                    return new JsonResponse(['mensaje' => 'El resumen no puede tener más de 800 caracteres'], 400);
+                }
                 $libro->setResumen($editarLibro['resumen']);
             }
 
@@ -219,13 +234,16 @@ class LibroController extends AbstractController
                 $libro->setAnioPublicacion($fechaPublicacion);
             }
 
-            // Editar precio
-            if (isset($editarLibro['precio'])) {
+            // Editar precio (con validación)
+            if (isset($editarLibro['precio']) && is_numeric($editarLibro['precio']) && $editarLibro['precio'] > 0) {
                 $libro->setPrecio($editarLibro['precio']);
             }
 
-            // Editar ISBN
+            // Editar ISBN (con validación)
             if (isset($editarLibro['ISBN'])) {
+                if (!preg_match('/^\d{10}(\d{3})?$/', str_replace('-', '', $editarLibro['ISBN']))) {
+                    return new JsonResponse(['mensaje' => 'Formato de ISBN inválido'], 400);
+                }
                 $libro->setISBN($editarLibro['ISBN']);
             }
 
@@ -234,7 +252,7 @@ class LibroController extends AbstractController
                 $libro->setEditorial($editarLibro['editorial']);
             }
 
-            // Editar imagen
+            // Editar imagen (esto puede depender de cómo se gestione la subida de archivos)
             if (isset($editarLibro['imagen'])) {
                 $libro->setImagen($editarLibro['imagen']);
             }
@@ -251,23 +269,27 @@ class LibroController extends AbstractController
 
             // Manejar la relación con Autor
             if (isset($editarLibro['autor'])) {
+                // Buscar el autor por el ID
                 $autor = $this->autorRepository->find($editarLibro['autor']);
                 if (!$autor) {
                     return new JsonResponse(['mensaje' => 'Autor no encontrado'], 400);
                 }
+                // Asignar el objeto Autor al libro
                 $libro->setAutor($autor);
             }
 
             // Manejar la relación con Categoria
             if (isset($editarLibro['categoria'])) {
+                // Buscar la categoría por el ID
                 $categoria = $this->categoriaRepository->find($editarLibro['categoria']);
                 if (!$categoria) {
                     return new JsonResponse(['mensaje' => 'Categoría no encontrada'], 400);
                 }
+                // Asignar el objeto Categoria al libro
                 $libro->setCategoria($categoria);
             }
 
-            // Guardar cambios
+            // Guardar los cambios en la base de datos
             $this->entityManager->flush();
 
             return new JsonResponse(['mensaje' => 'Libro actualizado correctamente'], 200);
@@ -275,6 +297,8 @@ class LibroController extends AbstractController
             return new JsonResponse(['error' => 'Error interno del servidor', 'detalle' => $e->getMessage()], 500);
         }
     }
+
+
 
 
 
