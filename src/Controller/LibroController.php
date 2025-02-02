@@ -113,10 +113,15 @@ class LibroController extends AbstractController
         $libro->setAutor($autor);
         $libro->setCategoria($categoria);
 
+//        if (!$this->isGranted('ROLE_ADMIN')) {
+//            return new JsonResponse(['mensaje' => 'No tienes permisos para realizar esta acción'], 403);
+//        }
+
 
         // Persistir el libro en la base de datos
         $this->entityManager->persist($libro);
         $this->entityManager->flush();
+
 
         return new JsonResponse(['mensaje' => 'Libro guardado correctamente'], 201);
     }
@@ -288,9 +293,16 @@ class LibroController extends AbstractController
                 // Asignar el objeto Categoria al libro
                 $libro->setCategoria($categoria);
             }
+//            if (!$this->isGranted('ROLE_ADMIN')) {
+//                return new JsonResponse(['mensaje' => 'No tienes permisos para realizar esta acción'], 403);
+//        }
+
+
 
             // Guardar los cambios en la base de datos
             $this->entityManager->flush();
+
+
 
             return new JsonResponse(['mensaje' => 'Libro actualizado correctamente'], 200);
         } catch (\Exception $e) {
@@ -316,6 +328,11 @@ class LibroController extends AbstractController
         if (count($lineasPedido) > 0) {
             return new JsonResponse(['mensaje' => 'No se puede eliminar un libro con pedidos activos'], 400);
         }
+
+//        if (!$this->isGranted('ROLE_ADMIN')) {
+//            return new JsonResponse(['mensaje' => 'No tienes permisos para realizar esta acción'], 403);
+//        }
+
 
 
 
