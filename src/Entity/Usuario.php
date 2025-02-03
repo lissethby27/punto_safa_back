@@ -37,6 +37,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
      #[ORM\OneToMany(targetEntity: Resena::class, mappedBy: 'usuario')]
      private Collection $usuario;
 
+
     public function __construct()
     {
         $this->usuario = new ArrayCollection();
