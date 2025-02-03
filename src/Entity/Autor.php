@@ -16,44 +16,23 @@ class Autor
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: "id", type: Types::INTEGER)]
-    #[Groups(['libro_list'])]
     private ?int $id = null;
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
-    #[Groups(['libro_list'])]
     private ?string $nombre = null;
-
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
-    #[Groups(['libro_list'])]
     private ?string $apellidos = null;
-
     #[ORM\Column(name: "biografia", type: Types::STRING, length: 800)]
-    #[Groups(['libro_list'])]
     private ?string $biografia = null;
 
     #[ORM\Column(name: "nacionalidad", type: Types::STRING, length: 100, nullable: true)]
-    #[Groups(['libro_list'])]
     private ?string $nacionalidad = null;
 
     #[ORM\Column(name: "fecha_nacimiento", type: Types::DATE_MUTABLE, nullable: true)]
-    #[Groups(['libro_list'])]
     private ?\DateTimeInterface $fecha_nacimiento = null;
 
 
-    /**
-     * @var Collection<int, Libro>
-     */
-    #[ORM\OneToMany(targetEntity: Libro::class, mappedBy: 'autor')]
-    #[Groups(['autor_detail'])]
-
-    private Collection $libros;
-
-    public function __construct()
-    {
-        $this->libros = new ArrayCollection();
-    }
-
-    public function getId(): ?int
+   public function getId(): ?int
     {
         return $this->id;
     }
@@ -118,33 +97,5 @@ class Autor
         return $this;
     }
 
-    /**
-     * @return Collection<int, Libro>
-     */
-    public function getLibros(): Collection
-    {
-        return $this->libros;
-    }
 
-//    public function addLibro(Libro $libro): static
-//    {
-//        if (!$this->libros->contains($libro)) {
-//            $this->libros->add($libro);
-//            $libro->setAutor($this);
-//        }
-//
-//        return $this;
-//    }
-
-//    public function removeLibro(Libro $libro): static
-//    {
-//        if ($this->libros->removeElement($libro)) {
-//            // set the owning side to null (unless already changed)
-//            if ($libro->getAutor() === $this) {
-//                $libro->setAutor(null);
-//            }
-//        }
-//
-//        return $this;
-//    }
 }

@@ -15,27 +15,14 @@ class Categoria
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: "id", type: 'integer')]
-    #[Groups(['categoria_detail', 'libro_list'])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'nombre', length: 100)]
-    #[Groups(['categoria_detail', 'libro_list'])]
     private ?string $nombre = null;
 
     #[ORM\Column(name: 'descripcion', length: 800)]
-    #[Groups(['categoria_detail', 'libro_list'])]
     private ?string $descripcion = null;
 
-    /**
-     * @var Collection<int, Libro>
-     */
-//    #[ORM\OneToMany(targetEntity: Libro::class, mappedBy: 'categoria')]
-//    private Collection $libros;  // Cambié el nombre de "categoria" a "libros"
-
-    public function __construct()
-    {
-        $this->libros = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -64,30 +51,4 @@ class Categoria
         return $this;
     }
 
-    /**
-     * @return Collection<int, Libro>
-     */
-//    public function getLibros(): Collection  // Cambié getCategoria() a getLibros()
-//    {
-//        return $this->libros;
-//    }
-
-//    public function addLibro(Libro $libro): static  // Renombré addCategorium() a addLibro()
-//    {
-//        if (!$this->libros->contains($libro)) {
-//            $this->libros->add($libro);
-//            $libro->setCategoria($this);
-//        }
-//        return $this;
-//    }
-
-//    public function removeLibro(Libro $libro): static  // Renombré removeCategorium() a removeLibro()
-//    {
-//        if ($this->libros->removeElement($libro)) {
-//            if ($libro->getCategoria() === $this) {
-//                $libro->setCategoria(null);
-//            }
-//        }
-//        return $this;
-//    }
 }
