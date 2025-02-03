@@ -1,31 +1,44 @@
-
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
+# Archivos de configuración sensibles
+/.env
 /.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+/.env.local.php
+/composer.lock
 
-###> phpunit/phpunit ###
+# Archivos de configuración de bases de datos
+/config/secrets/*
+
+# Archivos de claves privadas
+/config/jwt/*.pem
+
+# Archivos de caché y logs
+/var/
+/logs/
+/cache/
+
+# Archivos de dependencias
+/vendor/
+/node_modules/
+
+# Archivos de IDEs y editores
+/.idea/
+/.vscode/
+/*.sublime-project
+/*.sublime-workspace
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de PHPUnit
 /phpunit.xml
 .phpunit.result.cache
 
-###< symfony/phpunit-bridge ###
+# Archivos de cobertura de código
+/coverage/
+/.clover
+/.coverage
+/.nyc_output
+/coverage-final.json
 
-###> symfony/asset-mapper ###
-/public/assets/
-/assets/vendor/
-###< symfony/asset-mapper ###
-
-.idea/
-###> lexik/jwt-authentication-bundle ###
-/config/jwt/*.pem
-###< lexik/jwt-authentication-bundle ###
-
-
-tests/
-composer.lock
-.env
+# Archivos de despliegue
+/.build/
