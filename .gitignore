@@ -12,11 +12,7 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
-###< phpunit/phpunit ###
 
-###> symfony/phpunit-bridge ###
-.phpunit.result.cache
-/phpunit.xml
 ###< symfony/phpunit-bridge ###
 
 ###> symfony/asset-mapper ###
@@ -29,11 +25,7 @@
 /config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###
 
-tests/
-composer.lock
-
 
 tests/
-
 composer.lock
 .env
