@@ -1,39 +1,43 @@
-
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
+# Archivos de configuración sensibles
+/.env
 /.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+/.env.local.php
 
-###> phpunit/phpunit ###
-/phpunit.xml
-.phpunit.result.cache
-###< phpunit/phpunit ###
+# Archivos de configuración de bases de datos
+/config/secrets/*
 
-###> symfony/phpunit-bridge ###
-.phpunit.result.cache
-/phpunit.xml
-###< symfony/phpunit-bridge ###
-
-###> symfony/asset-mapper ###
-/public/assets/
-/assets/vendor/
-###< symfony/asset-mapper ###
-
-.idea/
-###> lexik/jwt-authentication-bundle ###
+# Archivos de claves privadas
 /config/jwt/*.pem
-###< lexik/jwt-authentication-bundle ###
 
-tests/
-composer.lock
+# Archivos de caché y logs
+/var/
+/logs/
+/cache/
 
+# Archivos de dependencias
+/vendor/
+/node_modules/
 
-tests/
+# Archivos de IDEs y editores
+/.idea/
+/.vscode/
+/*.sublime-project
+/*.sublime-workspace
 
-composer.lock
-.env
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de PHPUnit
+/phpunit.xml
+.phpunit.result.cache
+
+# Archivos de cobertura de código
+/coverage/
+/.clover
+/.coverage
+/.nyc_output
+/coverage-final.json
+
+# Archivos de despliegue
+/.build/
