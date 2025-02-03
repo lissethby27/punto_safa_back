@@ -9,6 +9,11 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
+composer.lock
+.env
+tests
+/config/jwt/*.pem
+
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
