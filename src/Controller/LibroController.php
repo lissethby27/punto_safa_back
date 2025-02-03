@@ -2,14 +2,13 @@
 
 namespace App\Controller;
 use App\Entity\Libro;
-use App\Entity\Usuario;
 use App\Repository\LibroRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use App\Repository\AutorRepository;
@@ -112,7 +111,96 @@ class LibroController extends AbstractController
         return new JsonResponse($jsonLibros, 200, [], true);
     }
 
+    #[Route('/precio/{range}', name: 'libros_by_precio', methods: ['GET'])]
+    public function getLibrosByPrecio(LibroRepository $libroRepository, string $range): JsonResponse{
+        switch ($range) {
+            case 'menor5':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio < :precio')
+                    ->setParameter('precio', 5)
+                    ->getQuery()
+                    ->getResult();
+                break;
+                case '5-10':
+                    $listaLibros = $libroRepository->createQueryBuilder('l')
+                        ->where('l.precio BETWEEN :min AND :max')
+                        ->setParameter('min', 5)
+                        ->setParameter('max', 10)
+                        ->getQuery()
+                        ->getResult();
+                    break;
+                    case '10-15':
+                        $listaLibros = $libroRepository->createQueryBuilder('l')
+                            ->where('l.precio BETWEEN :min AND :max')
+                            ->setParameter('min', 10)
+                            ->setParameter('max', 15)
+                            ->getQuery()
+                            ->getResult();
+                        break;
+                        case '15-40':
+                            $listaLibros = $libroRepository->createQueryBuilder('l')
+                                ->where('l.precio BETWEEN :min AND :max')
+                                ->setParameter('min', 15)
+                                ->setParameter('max', 40)
+                                ->getQuery()
+                                ->getResult();
+                            break;
+                            case 'mayor40':
+                                $listaLibros = $libroRepository->createQueryBuilder('l')
+                                    ->where('l.precio> :precio')
+                                    ->setParameter('precio', 40)
+                                    ->getQuery()
+                                    ->getResult();
+                                break;
+            default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
+        }
+        return $this->json($listaLibros, Response::HTTP_OK, [], ['groups' => ['libro_list']]);
 
+    }
+
+
+
+    #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
+    public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
+
+        $categoria = $categoriaRepository->findOneBy(['id' => $id]);
+
+        if(!$categoria){
+            return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
+        }
+
+        $libros = $libroRepository->findBy(['id' => $categoria]);
+
+
+        return $this->json($libros, Response::HTTP_OK, [], ['groups' => ['libro_list']]);
+
+    }
+
+    #[Route('/search', name: 'search_libros', methods: ['GET'])]
+    public function searchLibros(
+        Request $request,
+        LibroRepository $libroRepository
+    ): JsonResponse {
+        // Get the search query from the request
+        $query = $request->query->get('q');
+
+        if (!$query) {
+            return new JsonResponse(['error' => 'Debe proporcionar un término de búsqueda'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Search for libros by title or author
+        $libros = $libroRepository->createQueryBuilder('l')
+            ->leftJoin('l.autor', 'a') // Join with Autor
+            ->where('l.titulo LIKE :query')
+            ->orWhere('a.nombre LIKE :query')
+            ->orWhere('a.apellidos LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->getQuery()
+            ->getResult();
+
+        return $this->json($libros, JsonResponse::HTTP_OK, [], ['groups' => ['libro_list']]);
+
+    }
 
 
 
