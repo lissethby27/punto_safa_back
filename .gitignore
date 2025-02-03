@@ -2,6 +2,7 @@
 /.env
 /.env.*.local
 /.env.local.php
+/composer.lock
 
 # Archivos de configuración de bases de datos
 /config/secrets/*
