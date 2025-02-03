@@ -1,7 +1,38 @@
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
+
+###> symfony/phpunit-bridge ###
+###< symfony/phpunit-bridge ###
+
+###> symfony/asset-mapper ###
+/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
+
+.idea/
+tests/
+
+composer.lock
+.env
+/templates/pedido/index.html.twig
+
+
 # Archivos de configuración sensibles
 /.env
-/.env.*.local
-/.env.local.php
+
 /composer.lock
 
 # Archivos de configuración de bases de datos
@@ -11,12 +42,11 @@
 /config/jwt/*.pem
 
 # Archivos de caché y logs
-/var/
 /logs/
 /cache/
 
 # Archivos de dependencias
-/vendor/
+
 /node_modules/
 
 # Archivos de IDEs y editores
@@ -30,8 +60,7 @@
 Thumbs.db
 
 # Archivos de PHPUnit
-/phpunit.xml
-.phpunit.result.cache
+
 
 # Archivos de cobertura de código
 /coverage/
@@ -43,4 +72,3 @@ Thumbs.db
 # Archivos de despliegue
 /.build/
 
-/tests
