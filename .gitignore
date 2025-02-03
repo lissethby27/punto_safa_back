@@ -32,7 +32,8 @@ composer.lock
 
 # Archivos de configuración sensibles
 /.env
-
+/.env.*.local
+/.env.local.php
 /composer.lock
 
 # Archivos de configuración de bases de datos
@@ -42,11 +43,12 @@ composer.lock
 /config/jwt/*.pem
 
 # Archivos de caché y logs
+/var/
 /logs/
 /cache/
 
 # Archivos de dependencias
-
+/vendor/
 /node_modules/
 
 # Archivos de IDEs y editores
@@ -60,7 +62,8 @@ composer.lock
 Thumbs.db
 
 # Archivos de PHPUnit
-
+/phpunit.xml
+.phpunit.result.cache
 
 # Archivos de cobertura de código
 /coverage/
@@ -72,3 +75,4 @@ Thumbs.db
 # Archivos de despliegue
 /.build/
 
+/tests
