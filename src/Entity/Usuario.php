@@ -71,9 +71,9 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getRol(): ?string
+    public function getRoles(): array
     {
-        return $this->rol;
+        return ['ROLE_' , strtoupper($this->rol)];
     }
 
     public function setRol(string $rol): static
@@ -125,12 +125,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getRoles(): array
-    {
-        $roles = [];
-        $roles[] = $this->rol;
-        return $roles;
-    }
+
 
     public function eraseCredentials(): void
     {

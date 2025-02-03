@@ -15,9 +15,6 @@ class Cliente
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
-    private ?string $nombre = null;
-
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
     private ?string $apellidos = null;
 
@@ -41,17 +38,6 @@ class Cliente
         return $this->id;
     }
 
-    public function getNombre(): ?string
-    {
-        return $this->nombre;
-    }
-
-    public function setNombre(string $nombre): static
-    {
-        $this->nombre = $nombre;
-
-        return $this;
-    }
 
     public function getApellidos(): ?string
     {
