@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AutorRepository::class)]
 #[ORM\Table(name: "autor", schema: "puntosafa")]
@@ -15,21 +16,27 @@ class Autor
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: "id", type: Types::INTEGER)]
+    #[Groups(['libro_list'])]
     private ?int $id = null;
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
+    #[Groups(['libro_list'])]
     private ?string $nombre = null;
 
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
+    #[Groups(['libro_list'])]
     private ?string $apellidos = null;
 
     #[ORM\Column(name: "biografia", type: Types::STRING, length: 800)]
+    #[Groups(['libro_list'])]
     private ?string $biografia = null;
 
     #[ORM\Column(name: "nacionalidad", type: Types::STRING, length: 100, nullable: true)]
+    #[Groups(['libro_list'])]
     private ?string $nacionalidad = null;
 
     #[ORM\Column(name: "fecha_nacimiento", type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['libro_list'])]
     private ?\DateTimeInterface $fecha_nacimiento = null;
 
 
@@ -37,6 +44,8 @@ class Autor
      * @var Collection<int, Libro>
      */
     #[ORM\OneToMany(targetEntity: Libro::class, mappedBy: 'autor')]
+    #[Groups(['autor_detail'])]
+
     private Collection $libros;
 
     public function __construct()
@@ -117,25 +126,25 @@ class Autor
         return $this->libros;
     }
 
-    public function addLibro(Libro $libro): static
-    {
-        if (!$this->libros->contains($libro)) {
-            $this->libros->add($libro);
-            $libro->setAutor($this);
-        }
+//    public function addLibro(Libro $libro): static
+//    {
+//        if (!$this->libros->contains($libro)) {
+//            $this->libros->add($libro);
+//            $libro->setAutor($this);
+//        }
+//
+//        return $this;
+//    }
 
-        return $this;
-    }
-
-    public function removeLibro(Libro $libro): static
-    {
-        if ($this->libros->removeElement($libro)) {
-            // set the owning side to null (unless already changed)
-            if ($libro->getAutor() === $this) {
-                $libro->setAutor(null);
-            }
-        }
-
-        return $this;
-    }
+//    public function removeLibro(Libro $libro): static
+//    {
+//        if ($this->libros->removeElement($libro)) {
+//            // set the owning side to null (unless already changed)
+//            if ($libro->getAutor() === $this) {
+//                $libro->setAutor(null);
+//            }
+//        }
+//
+//        return $this;
+//    }
 }
