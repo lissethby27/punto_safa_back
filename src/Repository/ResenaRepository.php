@@ -16,6 +16,17 @@ class ResenaRepository extends ServiceEntityRepository
         parent::__construct($registry, Resena::class);
     }
 
+    public function usuarioYaResenoLibro(int $usuarioId, int $libroId): bool
+    {
+        return (bool) $this->createQueryBuilder('r')
+            ->where('r.usuario = :usuarioId')
+            ->andWhere('r.libro = :libroId')
+            ->setParameter('usuarioId', $usuarioId)
+            ->setParameter('libroId', $libroId)
+            ->getQuery()
+            ->getOneOrNullResult(); // Retorna null si no hay reseña
+    }
+
     //    /**
     //     * @return Resena[] Returns an array of Resena objects
     //     */
