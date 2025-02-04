@@ -6,7 +6,7 @@ controllers:
 api_login_check:
     path: /api/login_check
 
-    # config/routes.yaml
+    # esto es para cargar los libros
 api_libros:
     path: /libro/all
     controller: App\Controller\LibroController::listarLibros
