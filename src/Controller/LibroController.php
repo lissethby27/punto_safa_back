@@ -332,8 +332,13 @@ class LibroController extends AbstractController
                 $libro->setPrecio($editarLibro['precio']);
             }
 
+
             // Editar ISBN (con validación)
             if (isset($editarLibro['ISBN'])) {
+                $existingLibro = $this->libroRepository->findOneBy(['ISBN' => $editarLibro['ISBN']]);
+                if ($existingLibro && $existingLibro->getId() !== $libro->getId()) {
+                    return new JsonResponse(['mensaje' => 'El ISBN ya está en uso por otro libro'], 400);
+                }
                 if (!preg_match('/^\d{10}(\d{3})?$/', str_replace('-', '', $editarLibro['ISBN']))) {
                     return new JsonResponse(['mensaje' => 'Formato de ISBN inválido'], 400);
                 }
