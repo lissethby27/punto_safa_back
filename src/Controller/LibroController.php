@@ -248,7 +248,7 @@ class LibroController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        return $this->json($libros, JsonResponse::HTTP_OK, [], ['groups' => ['libro_list']]);
+        return $this->json($libros, JsonResponse::HTTP_OK, []);
 
     }
 
