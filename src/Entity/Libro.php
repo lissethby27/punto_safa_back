@@ -53,16 +53,6 @@ class Libro
     #[ORM\JoinColumn(name: "id_categoria", referencedColumnName: "id", nullable: false)]
     private ?Categoria $categoria = null;
 
-    /**
-     * @var Collection<int, LineaPedido>
-     */
-    #[ORM\OneToMany(targetEntity: LineaPedido::class, mappedBy: 'libro')]
-    private Collection $lineaPedidos;
-
-    public function __construct()
-    {
-        $this->lineaPedidos = new ArrayCollection();
-    }
     public function getId(): ?int
     {
         return $this->id;
