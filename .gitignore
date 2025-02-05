@@ -1,4 +1,3 @@
-
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -9,19 +8,12 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
-composer.lock
-.env
-tests
-/config/jwt/*.pem
-
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
 ###< phpunit/phpunit ###
 
 ###> symfony/phpunit-bridge ###
-.phpunit.result.cache
-/phpunit.xml
 ###< symfony/phpunit-bridge ###
 
 ###> symfony/asset-mapper ###
@@ -30,3 +22,54 @@ tests
 ###< symfony/asset-mapper ###
 
 .idea/
+tests/
+
+composer.lock
+.env
+/templates/pedido/index.html.twig
+
+
+# Archivos de configuración sensibles
+/.env
+
+/composer.lock
+
+# Archivos de configuración de bases de datos
+/config/secrets/*
+
+# Archivos de claves privadas
+/config/jwt/*.pem
+
+# Archivos de caché y logs
+
+/logs/
+/cache/
+
+# Archivos de dependencias
+
+/node_modules/
+
+# Archivos de IDEs y editores
+/.idea/
+/.vscode/
+/*.sublime-project
+/*.sublime-workspace
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de PHPUnit
+
+# Archivos de cobertura de código
+/coverage/
+/.clover
+/.coverage
+/.nyc_output
+/coverage-final.json
+
+# Archivos de despliegue
+/.build/
+
+/tests
+
