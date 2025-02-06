@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AutorRepository::class)]
 #[ORM\Table(name: "autor", schema: "puntosafa")]
@@ -19,10 +20,8 @@ class Autor
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
     private ?string $nombre = null;
-
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
     private ?string $apellidos = null;
-
     #[ORM\Column(name: "biografia", type: Types::STRING, length: 800)]
     private ?string $biografia = null;
 
@@ -33,18 +32,7 @@ class Autor
     private ?\DateTimeInterface $fecha_nacimiento = null;
 
 
-    /**
-     * @var Collection<int, Libro>
-     */
-    #[ORM\OneToMany(targetEntity: Libro::class, mappedBy: 'autor')]
-    private Collection $libros;
-
-    public function __construct()
-    {
-        $this->libros = new ArrayCollection();
-    }
-
-    public function getId(): ?int
+   public function getId(): ?int
     {
         return $this->id;
     }
@@ -109,33 +97,5 @@ class Autor
         return $this;
     }
 
-    /**
-     * @return Collection<int, Libro>
-     */
-    public function getLibros(): Collection
-    {
-        return $this->libros;
-    }
 
-    public function addLibro(Libro $libro): static
-    {
-        if (!$this->libros->contains($libro)) {
-            $this->libros->add($libro);
-            $libro->setAutor($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLibro(Libro $libro): static
-    {
-        if ($this->libros->removeElement($libro)) {
-            // set the owning side to null (unless already changed)
-            if ($libro->getAutor() === $this) {
-                $libro->setAutor(null);
-            }
-        }
-
-        return $this;
-    }
 }
