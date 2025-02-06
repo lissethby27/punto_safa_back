@@ -15,6 +15,8 @@ class Cliente
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
+    private ?string $nombre = null;
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
     private ?string $apellidos = null;
 
@@ -30,13 +32,29 @@ class Cliente
     #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
     private ?string $telefono = null;
 
-    #[ORM\Column(name: "id_usuario", type: Types::INTEGER)]
-    private ?int $id_usuario = null;
+    #[ORM\ManyToOne(targetEntity: Usuario::class)]
+    #[ORM\JoinColumn(name: "id_usuario", referencedColumnName: "id", nullable: false)]
+    private ?Usuario $usuario = null;
+
+
 
     public function getId(): ?int
     {
         return $this->id;
     }
+
+    public function getNombre(): ?string
+    {
+        return $this->nombre;
+    }
+
+    public function setNombre(string $nombre): static
+    {
+        $this->nombre = $nombre;
+
+        return $this;
+    }
+
 
 
     public function getApellidos(): ?string
@@ -108,6 +126,17 @@ class Cliente
     {
         $this->id_usuario = $id_usuario;
 
+        return $this;
+    }
+
+    public function getUsuario(): ?Usuario
+    {
+        return $this->usuario;
+    }
+
+    public function setUsuario(Usuario $usuario): static
+    {
+        $this->usuario = $usuario;
         return $this;
     }
 }
