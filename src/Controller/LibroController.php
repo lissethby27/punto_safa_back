@@ -209,20 +209,24 @@ class LibroController extends AbstractController
     }
 
 
+    //Filtro de libros por categoría para obtener los libros de una categoría específica
 
+
+    // Filtro de libros por categoria (id)
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
     public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
-
-        $categoria = $categoriaRepository->findOneBy(['id' => $id]);
+        // Buscar la categoría por su ID
+        $categoria = $categoriaRepository->find($id);
 
         if(!$categoria){
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
         }
 
-        $libros = $libroRepository->findBy(['id' => $categoria]);
+        // Buscar libros que pertenezcan a la categoría
+        $libros = $libroRepository->findBy(['categoria' => $categoria]);
 
 
-        return $this->json($libros, Response::HTTP_OK, [], ['groups' => ['libro_list']]);
+        return $this->json($libros, Response::HTTP_OK, []);
 
     }
 
