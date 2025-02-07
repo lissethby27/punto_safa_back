@@ -204,7 +204,7 @@ class LibroController extends AbstractController
                                 break;
             default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
         }
-        return $this->json($listaLibros, Response::HTTP_OK, [], ['groups' => ['libro_list']]);
+        return $this->json($listaLibros, Response::HTTP_OK, []);
 
     }
 
