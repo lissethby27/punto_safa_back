@@ -17,9 +17,8 @@ final class LineaPedidoController extends AbstractController
     {
         $lineaPedidos = $lineaPedidoRepository->findAll();
 
-        // Serialize the pedidos with a defined group
-        $json = $serializer->serialize($lineaPedidos, 'json', ['groups' => 'pedido:read']);
+        $jsonContent = $serializer->serialize($lineaPedidos, 'json');
 
-        return new Response($json, Response::HTTP_OK, ['Content-Type' => 'application/json']);
+        return new Response($jsonContent, Response::HTTP_OK, [], true);
     }
 }

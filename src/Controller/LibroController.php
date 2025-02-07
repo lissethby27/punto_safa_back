@@ -204,7 +204,7 @@ class LibroController extends AbstractController
                                 break;
             default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
         }
-        return $this->json($listaLibros, Response::HTTP_OK, [], ['groups' => ['libro_list']]);
+        return $this->json($listaLibros, Response::HTTP_OK, []);
 
     }
 
@@ -213,7 +213,7 @@ class LibroController extends AbstractController
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
     public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
 
-        $categoria = $categoriaRepository->findOneBy(['id' => $id]);
+        $categoria = $categoriaRepository->find($id);
 
         if(!$categoria){
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
@@ -222,7 +222,7 @@ class LibroController extends AbstractController
         $libros = $libroRepository->findBy(['id' => $categoria]);
 
 
-        return $this->json($libros, Response::HTTP_OK, [], ['groups' => ['libro_list']]);
+        return $this->json($libros, Response::HTTP_OK, []);
 
     }
 
