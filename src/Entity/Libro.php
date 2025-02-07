@@ -3,11 +3,9 @@
 namespace App\Entity;
 
 use App\Repository\LibroRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+
 
 #[ORM\Entity(repositoryClass: LibroRepository::class)]
 #[ORM\Table(name: "libro", schema: "puntosafa")]
@@ -53,16 +51,6 @@ class Libro
     #[ORM\JoinColumn(name: "id_categoria", referencedColumnName: "id", nullable: false)]
     private ?Categoria $categoria = null;
 
-    /**
-     * @var Collection<int, LineaPedido>
-     */
-    #[ORM\OneToMany(targetEntity: LineaPedido::class, mappedBy: 'libro')]
-    private Collection $lineaPedidos;
-
-    public function __construct()
-    {
-        $this->lineaPedidos = new ArrayCollection();
-    }
     public function getId(): ?int
     {
         return $this->id;
@@ -189,30 +177,5 @@ class Libro
         return $this;
     }
 
-    /**
-     * @return Collection<int, LineaPedido>
-     */
-//    public function getLineaPedidos(): Collection
-//    {
-//        return $this->lineaPedidos;
-//    }
 
-//    public function addLineaPedido(LineaPedido $lineaPedido): static
-//    {
-//        if (!$this->lineaPedidos->contains($lineaPedido)) {
-//            $this->lineaPedidos->add($lineaPedido);
-//            $lineaPedido->setLibro($this);
-//        }
-//        return $this;
-//    }
-//
-//    public function removeLineaPedido(LineaPedido $lineaPedido): static
-//    {
-//        if ($this->lineaPedidos->removeElement($lineaPedido)) {
-//            if ($lineaPedido->getLibro() === $this) {
-//                $lineaPedido->setLibro(null);
-//            }
-//        }
-//        return $this;
-//    }
 }
