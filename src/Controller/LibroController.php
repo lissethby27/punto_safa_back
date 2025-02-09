@@ -134,7 +134,7 @@ class LibroController extends AbstractController
     {
         // Obtener parámetros de paginación que es opcional y por defecto es 1 y 10 respectivamente
         $page = $request->query->getInt('page', 1);
-        $limit = $request->query->getInt('limit', 10);
+        $limit = $request->query->getInt('limit', 9);
 
         // Crear consulta personalizada para evitar referencias circulares y mostrar datos relacionados de forma más clara
         $query = $libroRepository->createQueryBuilder('l')
