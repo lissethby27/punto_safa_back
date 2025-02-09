@@ -46,14 +46,21 @@ final class AutorController extends AbstractController
 
 
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
-    public function getById(Autor $autor): JsonResponse
+    public function getById(int $id, AutorRepository $autorRepository): JsonResponse
     {
+        $autor = $autorRepository->find($id);
+
+        if (!$autor) {
+            return $this->json(['error' => 'Autor no encontrado'], 404);
+        }
+
         $json = $this->serializer->serialize($autor, 'json', [
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
         return new JsonResponse($json, 200, [], true);
     }
+
 
 
 

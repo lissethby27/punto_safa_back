@@ -74,8 +74,15 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return ['ROLE_' , strtoupper($this->rol)];
+        return [$this->rol ? 'ROLE_' . strtoupper($this->rol) : 'ROLE_USER'];
     }
+
+
+    public function getRol(): ?string
+    {
+        return $this->rol;
+    }
+
 
     public function setRol(string $rol): static
     {
@@ -108,7 +115,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->usuario->contains($usuario)) {
             $this->usuario->add($usuario);
-            $usuario->setIdUsuario($this);
+            $usuario->setUsuario($this);
         }
 
         return $this;
@@ -118,8 +125,8 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->usuario->removeElement($usuario)) {
             // set the owning side to null (unless already changed)
-            if ($usuario->getIdUsuario() === $this) {
-                $usuario->setIdUsuario(null);
+            if ($usuario->getUsuario() === $this) {
+                $usuario->setUsuario(null);
             }
         }
 
@@ -142,4 +149,9 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->contrasena;
     }
+
+
+
+
+
 }

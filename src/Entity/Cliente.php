@@ -32,9 +32,10 @@ class Cliente
     #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
     private ?string $telefono = null;
 
-    #[ORM\ManyToOne(targetEntity: Usuario::class)]
+    #[ORM\ManyToOne(targetEntity: Usuario::class, fetch: "EAGER")]
     #[ORM\JoinColumn(name: "id_usuario", referencedColumnName: "id", nullable: false)]
     private ?Usuario $usuario = null;
+
 
 
 
@@ -117,17 +118,6 @@ class Cliente
         return $this;
     }
 
-    public function getIdUsuario(): ?int
-    {
-        return $this->id_usuario;
-    }
-
-    public function setIdUsuario(int $id_usuario): static
-    {
-        $this->id_usuario = $id_usuario;
-
-        return $this;
-    }
 
     public function getUsuario(): ?Usuario
     {

@@ -48,6 +48,15 @@ final class UsuarioController extends AbstractController
         $nuevo_cliente->setTelefono($body['telefono']);
         $nuevo_cliente->setUsuario($nuevo_usuario); // Asignar el usuario
 
+        // Si necesitas acceder a la propiedad 'rol' del usuario, inicializa el objeto 'Usuario'
+        $usuario = $nuevo_cliente->getUsuario();
+        if ($usuario instanceof \Doctrine\ORM\Proxy\Proxy) {
+            $entityManager->initializeObject($usuario);
+        }
+
+        // Ahora puedes acceder a la propiedad 'rol' sin problemas
+        $rol = $usuario->getRol();
+
         $entityManager->persist($nuevo_cliente);
         $entityManager->flush(); // Guardar cliente
 
