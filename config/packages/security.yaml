@@ -43,6 +43,7 @@ security:
         - { path: ^/autor/guardar, roles: PUBLIC_ACCESS }
         - { path: ^/categoria,     roles: PUBLIC_ACCESS }
         - {path: ^/libro/all, roles: PUBLIC_ACCESS}
+
         - {path: ^/libro/\d+, roles: PUBLIC_ACCESS}
         - {path: ^/libro/guardar, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
         - {path: ^/libro/editar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
