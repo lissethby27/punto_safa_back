@@ -169,6 +169,30 @@ final class ClienteController extends AbstractController
         return $this->json(['mensaje' => 'Datos eliminados correctamente']);
     }
 
+    #[Route('/auth/user', name: 'auth_user', methods: ['GET'])]
+    public function getAuthenticatedUser(): JsonResponse
+    {
+        $usuario = $this->getUser(); // Symfony obtiene el usuario autenticado
+
+        if (!$usuario) {
+            return $this->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        // Verificamos si el usuario está asociado a un Cliente
+        $cliente = $usuario->getCliente();
+
+        if (!$cliente) {
+            return $this->json(['error' => 'No se encontró un cliente asociado al usuario'], 404);
+        }
+
+        $json = $this->serializer->serialize($cliente, 'json', [
+            'circular_reference_handler' => fn($object) => $object->getId(),
+        ]);
+
+        return new JsonResponse($json, 200, [], true);
+    }
+
+
 
 
 }
