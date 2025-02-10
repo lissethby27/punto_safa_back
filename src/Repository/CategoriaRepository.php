@@ -5,10 +5,12 @@ namespace App\Repository;
 use App\Entity\Categoria;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @extends ServiceEntityRepository<Categoria>
  */
+#[Route('/categoria')]
 class CategoriaRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -40,4 +42,10 @@ class CategoriaRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    #[Route('/all', name: 'listar_categorias', methods: ['GET'])]
+    public function getCategorias(CategoriaRepository $categoriaRepository): JsonResponse {
+        $categorias = $categoriaRepository->findAll();
+        return $this->json($categorias, Response::HTTP_OK);
+    }
 }
