@@ -219,7 +219,7 @@ class LibroController extends AbstractController
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
         }
 
-        $libros = $libroRepository->findBy(['id' => $categoria]);
+        $libros = $libroRepository->findBy(['categoria' => $categoria]);
 
 
         return $this->json($libros, Response::HTTP_OK, []);
@@ -252,7 +252,22 @@ class LibroController extends AbstractController
 
     }
 
+    #[Route('/ordenar', name: 'search_libros', methods: ['GET'])]
+    public function ordenarLibros(Request $request, LibroRepository $libroRepository): JsonResponse{
+        $ordenarPor = $request->query->get('ordenarPor', 'titulo');
+        $opcionesOrdenar = ['precio', 'titulo', 'autor', 'fecha'];
 
+        if(!in_array($ordenarPor, $opcionesOrdenar)){
+            $ordenarPor = 'titulo';
+        }
+
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 9);
+
+        $libros = $libroRepository->ordenarLibros($ordenarPor, $page, $limit);
+
+        return new JsonResponse($libros, Response::HTTP_OK, []);
+    }
 
 
     //Llamar a  un libro por su id
