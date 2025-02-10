@@ -16,6 +16,38 @@ class LibroRepository extends ServiceEntityRepository
         parent::__construct($registry, Libro::class);
     }
 
+    public  function ordenarLibros(string $ordenarPor, int $page=1, int $limit=9){
+        $queyBuilder = $this->createQueryBuilder('libro')
+            ->leftJoin('libro.autor', 'a') // 🔹 Join the author table
+            ->addSelect('a');
+
+        switch ($ordenarPor) {
+            case 'precio':
+                $queyBuilder->orderBy('libro.precio', 'ASC'); // Or 'DESC' for descending order
+                break;
+            case 'autor':
+                $queyBuilder->orderBy('a.nombre', 'ASC');
+                break;
+            case 'fecha':
+                $queyBuilder->orderBy('libro.anio_publicacion', 'ASC');
+                break;
+            default:
+                $queyBuilder->orderBy('libro.titulo', 'ASC');
+                break;
+        }
+
+        if ($page > 0) {
+            $queyBuilder->setFirstResult(($page - 1) * $limit)
+                ->setMaxResults($limit);
+        }
+
+//        dd($queyBuilder->getQuery()->getSQL());
+
+
+        return $queyBuilder->getQuery()->getArrayResult();
+
+    }
+
 
 
 
