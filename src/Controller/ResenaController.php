@@ -183,6 +183,18 @@ class ResenaController extends AbstractController
         return new JsonResponse($resenasArray, Response::HTTP_OK);
     }
 
+    #[Route("/media-calificacion/{id_libro}", name: "media_calificacion_libro", methods: ["GET"])]
+    public function mediaCalificacionPorLibro(int $id_libro): JsonResponse
+    {
+        $media = $this->resenaRepository->calcularMediaCalificacionPorLibro($id_libro);
+
+        if ($media === null) {
+            return new JsonResponse(['mensaje' => 'No hay calificaciones para este libro.'], Response::HTTP_OK);
+        }
+
+        return new JsonResponse(['media_calificacion' => $media], Response::HTTP_OK);
+    }
+
 
 
 
