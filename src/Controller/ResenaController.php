@@ -189,11 +189,10 @@ class ResenaController extends AbstractController
         $media = $this->resenaRepository->calcularMediaCalificacionPorLibro($id_libro);
 
         if ($media === null) {
-            return new JsonResponse(['mensaje' => 'No hay calificaciones para este libro.'], Response::HTTP_OK);
+            return new JsonResponse(0, Response::HTTP_OK);
         }
 
-        return new JsonResponse(['media_calificacion' => $media], Response::HTTP_OK);
-    }
+        return new JsonResponse($media, Response::HTTP_OK);    }
 
 
 
