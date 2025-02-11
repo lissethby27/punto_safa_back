@@ -165,7 +165,7 @@ class ResenaController extends AbstractController
         $resenas = $this->resenaRepository->findBy(['libro' => $id_libro]);
 
         if (!$resenas) {
-            return new JsonResponse(['mensaje' => 'No hay reseñas para este libro.'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['mensaje' => 'No hay reseñas para este libro.'], Response::HTTP_OK);
         }
 
         // Formateamos las reseñas para enviarlas en JSON

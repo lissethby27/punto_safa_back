@@ -52,6 +52,7 @@ security:
         - { path: ^/resena/mostrar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
         - { path: ^/resena/eliminar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
         - { path: ^/resena/actualizar/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/resena/resenas/\d+, roles: PUBLIC_ACCESS }
 
 
 
