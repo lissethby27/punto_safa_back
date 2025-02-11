@@ -41,10 +41,10 @@ security:
         - { path: ^/autor,     roles: PUBLIC_ACCESS }
         - { path: ^/autor/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/autor/guardar, roles: PUBLIC_ACCESS }
+        - { path: ^/autor/editar, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
         - { path: ^/categoria,     roles: PUBLIC_ACCESS }
         - {path: ^/libro/all, roles: PUBLIC_ACCESS}
-
-
+        - {path: ^/libro/\d+, roles: PUBLIC_ACCESS}
         - {path: ^/libro/guardar, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
         - {path: ^/libro/editar, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
         - {path: ^/libro/eliminar, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
@@ -54,6 +54,11 @@ security:
         - { path: ^/resena/actualizar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
         - { path: ^/resena/eliminar/\d+, roles: PUBLIC_ACCESS }
         - {path: ^/libro/ordenar, roles: PUBLIC_ACCESS}
+        - { path: ^/resena/eliminar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
+        - { path: ^/resena/actualizar/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/cliente,     roles: PUBLIC_ACCESS }
+        - { path: ^/cliente/guardar, roles: PUBLIC_ACCESS }
+        - { path: ^/cliente/editar, roles: PUBLIC_ACCESS }   #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
 
 
 

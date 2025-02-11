@@ -5,10 +5,12 @@ nelmio_cors:
         allow_methods: ['GET', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE']
         allow_headers: ['Content-Type', 'Authorization']
         expose_headers: ['Link']
-        max_age: 3600
+
     paths:
-        '^/api/':
-            allow_origin: [ '*' ]
-            allow_headers: [ 'content-type', 'authorization' ]
-            allow_methods: [ 'POST', 'PUT', 'GET', 'DELETE', 'OPTIONS' ]
-            max_age: 3600
+
+        '^/api/': # Aplica CORS para todas las rutas que comiencen con /api
+            allow_origin: [ 'http://localhost:4200' ]
+            allow_headers: [ 'Content-Type', 'Authorization' ]
+            allow_methods: [ 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS' ]
+            allow_credentials: true
+

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Cliente;
 use App\Entity\Usuario;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,25 +24,45 @@ final class UsuarioController extends AbstractController
 
 
     #[Route('/api/registro', name: 'app_usuario', methods: ['POST'])]
-    public function registro(Request $request,UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
+    public function registro(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
     {
-        $body = json_decode($request -> getContent(), true);
+        $body = json_decode($request->getContent(), true);
 
+        // Crear usuario
         $nuevo_usuario = new Usuario();
-        $nuevo_usuario -> setNick($body['nick']);
+        $nuevo_usuario->setNick($body['nick']);
         $nuevo_usuario->setEmail($body['email']);
-        $nuevo_usuario -> setContrasena($userPasswordHasher -> hashPassword($nuevo_usuario, $body['contrasena']));
-        $nuevo_usuario -> setRol("cliente");
+        $nuevo_usuario->setContrasena($userPasswordHasher->hashPassword($nuevo_usuario, $body['contrasena']));
+        $nuevo_usuario->setRol("cliente");
 
         $entityManager->persist($nuevo_usuario);
-        $entityManager->flush();
+        $entityManager->flush(); // Guardar usuario primero
 
-        /** @var Usuario $usuario */
-         $usuario = $this->getUser(); // token
+        // Crear cliente asociado
+        $nuevo_cliente = new Cliente();
+        $nuevo_cliente->setNombre($body['nombre']);
+        $nuevo_cliente->setApellidos($body['apellidos']);
+        $nuevo_cliente->setDNI($body['dni']);
+        $nuevo_cliente->setFoto($body['foto']);
+        $nuevo_cliente->setDireccion($body['direccion']);
+        $nuevo_cliente->setTelefono($body['telefono']);
+        $nuevo_cliente->setUsuario($nuevo_usuario); // Asignar el usuario
 
-        return new JsonResponse(['mensaje' => 'Usuario registrado correctamente'], 201);
+        // Si necesitas acceder a la propiedad 'rol' del usuario, inicializa el objeto 'Usuario'
+        $usuario = $nuevo_cliente->getUsuario();
+        if ($usuario instanceof \Doctrine\ORM\Proxy\Proxy) {
+            $entityManager->initializeObject($usuario);
+        }
 
+        // Ahora puedes acceder a la propiedad 'rol' sin problemas
+        $rol = $usuario->getRol();
+
+        $entityManager->persist($nuevo_cliente);
+        $entityManager->flush(); // Guardar cliente
+
+        return new JsonResponse(['mensaje' => 'Usuario y Cliente registrados correctamente'], 201);
     }
+
 
 
     #[Route('usuario/all', name: 'all', methods: ['GET'])]

@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ClienteRepository::class)]
 #[ORM\Table(name: "cliente", schema: "puntosafa")]
@@ -14,36 +13,31 @@ class Cliente
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['pedido:read'])]
     private ?int $id = null;
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
-    #[Groups(['pedido:read'])]
     private ?string $nombre = null;
-
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
-    #[Groups(['pedido:read'])]
     private ?string $apellidos = null;
 
     #[ORM\Column(name: "DNI", type: Types::STRING, length: 100, unique: true)]
-    #[Groups(['pedido:read'])]
     private ?string $DNI = null;
 
     #[ORM\Column(name: "foto", type: Types::STRING, length: 255)]
-    #[Groups(['pedido:read'])]
     private ?string $foto = null;
 
     #[ORM\Column(name: "direccion", type: Types::STRING, length: 200)]
-    #[Groups(['pedido:read'])]
     private ?string $direccion = null;
 
     #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
-    #[Groups(['pedido:read'])]
     private ?string $telefono = null;
 
-    #[ORM\Column(name: "id_usuario", type: Types::INTEGER)]
-    #[Groups(['pedido:read'])]
-    private ?int $id_usuario = null;
+    #[ORM\ManyToOne(targetEntity: Usuario::class, fetch: "EAGER")]
+    #[ORM\JoinColumn(name: "id_usuario", referencedColumnName: "id", nullable: false)]
+    private ?Usuario $usuario = null;
+
+
+
 
     public function getId(): ?int
     {
@@ -61,6 +55,8 @@ class Cliente
 
         return $this;
     }
+
+
 
     public function getApellidos(): ?string
     {
@@ -122,15 +118,15 @@ class Cliente
         return $this;
     }
 
-    public function getIdUsuario(): ?int
+
+    public function getUsuario(): ?Usuario
     {
-        return $this->id_usuario;
+        return $this->usuario;
     }
 
-    public function setIdUsuario(int $id_usuario): static
+    public function setUsuario(Usuario $usuario): static
     {
-        $this->id_usuario = $id_usuario;
-
+        $this->usuario = $usuario;
         return $this;
     }
 }

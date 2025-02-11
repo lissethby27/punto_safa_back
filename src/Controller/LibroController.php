@@ -171,37 +171,37 @@ class LibroController extends AbstractController
                     ->getQuery()
                     ->getResult();
                 break;
-                case '5-10':
-                    $listaLibros = $libroRepository->createQueryBuilder('l')
-                        ->where('l.precio BETWEEN :min AND :max')
-                        ->setParameter('min', 5)
-                        ->setParameter('max', 10)
-                        ->getQuery()
-                        ->getResult();
-                    break;
-                    case '10-15':
-                        $listaLibros = $libroRepository->createQueryBuilder('l')
-                            ->where('l.precio BETWEEN :min AND :max')
-                            ->setParameter('min', 10)
-                            ->setParameter('max', 15)
-                            ->getQuery()
-                            ->getResult();
-                        break;
-                        case '15-40':
-                            $listaLibros = $libroRepository->createQueryBuilder('l')
-                                ->where('l.precio BETWEEN :min AND :max')
-                                ->setParameter('min', 15)
-                                ->setParameter('max', 40)
-                                ->getQuery()
-                                ->getResult();
-                            break;
-                            case 'mayor40':
-                                $listaLibros = $libroRepository->createQueryBuilder('l')
-                                    ->where('l.precio> :precio')
-                                    ->setParameter('precio', 40)
-                                    ->getQuery()
-                                    ->getResult();
-                                break;
+            case '5-10':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio BETWEEN :min AND :max')
+                    ->setParameter('min', 5)
+                    ->setParameter('max', 10)
+                    ->getQuery()
+                    ->getResult();
+                break;
+            case '10-15':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio BETWEEN :min AND :max')
+                    ->setParameter('min', 10)
+                    ->setParameter('max', 15)
+                    ->getQuery()
+                    ->getResult();
+                break;
+            case '15-40':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio BETWEEN :min AND :max')
+                    ->setParameter('min', 15)
+                    ->setParameter('max', 40)
+                    ->getQuery()
+                    ->getResult();
+                break;
+            case 'mayor40':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio> :precio')
+                    ->setParameter('precio', 40)
+                    ->getQuery()
+                    ->getResult();
+                break;
             default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
         }
         return $this->json($listaLibros, Response::HTTP_OK, []);
