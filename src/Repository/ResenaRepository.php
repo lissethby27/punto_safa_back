@@ -27,6 +27,21 @@ class ResenaRepository extends ServiceEntityRepository
             ->getOneOrNullResult(); // Retorna null si no hay reseña
     }
 
+    public function calcularMediaCalificacionPorLibro(int $id_libro): ?float
+    {
+        $qb = $this->createQueryBuilder('r')
+            ->select('AVG(r.calificacion) as media')
+            ->where('r.libro = :id_libro')
+            ->setParameter('id_libro', $id_libro)
+            ->getQuery();
+
+        return $qb->getSingleScalarResult();
+    }
+
+
+
+
+
     //    /**
     //     * @return Resena[] Returns an array of Resena objects
     //     */
