@@ -172,7 +172,7 @@ class ResenaController extends AbstractController
         $resenasArray = array_map(function ($resena) {
             return [
                 'id'           => $resena->getId(),
-                'usuario'      => $resena->getUsuario()->getId(),
+                'usuario'      => $resena->getUsuario()->getNick(),
                 'libro'        => $resena->getLibro()->getId(),
                 'calificacion' => $resena->getCalificacion(),
                 'comentario'   => $resena->getComentario(),
