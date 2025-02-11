@@ -16,7 +16,7 @@ class LibroRepository extends ServiceEntityRepository
         parent::__construct($registry, Libro::class);
     }
 
-    public  function ordenarLibros(string $ordenarPor, int $page=1, int $limit=9){
+    public  function ordenarLibros(string $ordenarPor, int $page=1, int $limit=9, ?\DateTime $fecha = null){
         $queyBuilder = $this->createQueryBuilder('libro')
             ->leftJoin('libro.autor', 'a') // 🔹 Join the author table
             ->addSelect('a');
@@ -34,6 +34,11 @@ class LibroRepository extends ServiceEntityRepository
             default:
                 $queyBuilder->orderBy('libro.titulo', 'ASC');
                 break;
+        }
+
+        if ($fecha !== null) {
+            $queyBuilder->andWhere('YEAR(libro.anio_publicacion) = :fecha')
+                ->setParameter('fecha', $fecha->format('Y')); // 🔹 Compare only the year
         }
 
         if ($page > 0) {
