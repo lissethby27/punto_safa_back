@@ -264,7 +264,28 @@ class LibroController extends AbstractController
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 9);
 
-        $libros = $libroRepository->ordenarLibros($ordenarPor, $page, $limit);
+        $fechaString = $request->query->get('fecha', null);
+        $fecha = null;
+
+
+        if ($fechaString) {
+            try {
+                $fecha = new \DateTime($fechaString);
+            } catch (\Exception $e) {
+                return new JsonResponse(['error' => 'Invalid date format'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+
+        $libros = $libroRepository->ordenarLibros($ordenarPor,  $page, $limit, $fecha,);
+
+        $libros = array_map(function ($libro) {
+            $libro['anio_publicacion'] = $libro['anio_publicacion'] instanceof \DateTimeInterface
+                ? $libro['anio_publicacion']->format('Y-m-d')
+                : null;
+            return $libro;
+        }, $libros);
+
 
         return new JsonResponse($libros, Response::HTTP_OK, []);
     }
