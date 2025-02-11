@@ -6,6 +6,7 @@ use App\Entity\Cliente;
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -170,26 +171,35 @@ final class ClienteController extends AbstractController
     }
 
     #[Route('/auth/user', name: 'auth_user', methods: ['GET'])]
-    public function getAuthenticatedUser(): JsonResponse
+    public function getAuthenticatedUser(Security $security): JsonResponse
     {
-        $usuario = $this->getUser(); // Symfony obtiene el usuario autenticado
+        $usuario = $security->getUser();
 
         if (!$usuario) {
             return $this->json(['error' => 'Usuario no autenticado'], 401);
         }
 
-        // Verificamos si el usuario está asociado a un Cliente
+        // Check if Usuario has a Cliente associated
         $cliente = $usuario->getCliente();
-
         if (!$cliente) {
             return $this->json(['error' => 'No se encontró un cliente asociado al usuario'], 404);
         }
 
-        $json = $this->serializer->serialize($cliente, 'json', [
-            'circular_reference_handler' => fn($object) => $object->getId(),
+        return $this->json([
+            'id' => $usuario->getId(),
+            'nick' => $usuario->getNick(),
+            'email' => $usuario->getEmail(),
+            'rol' => $usuario->getRol(),
+            'cliente' => [
+                'nombre' => $cliente->getNombre(),
+                'apellidos' => $cliente->getApellidos(),
+                'dni' => $cliente->getDNI(),
+                'telefono' => $cliente->getTelefono(),
+                'direccion' => $cliente->getDireccion(),
+                'foto' => $cliente->getFoto(),
+            ]
         ]);
 
-        return new JsonResponse($json, 200, [], true);
     }
 
 
