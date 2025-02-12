@@ -212,14 +212,15 @@ class LibroController extends AbstractController
 
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
     public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
-
+        // Buscar la categoría por su ID
         $categoria = $categoriaRepository->find($id);
 
         if(!$categoria){
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
         }
 
-        $libros = $libroRepository->findBy(['id' => $categoria]);
+        // Buscar libros que pertenezcan a la categoría
+        $libros = $libroRepository->findBy(['categoria' => $categoria]);
 
 
         return $this->json($libros, Response::HTTP_OK, []);
