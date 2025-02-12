@@ -38,6 +38,18 @@ class ResenaRepository extends ServiceEntityRepository
         return $qb->getSingleScalarResult();
     }
 
+    public function findTopRatedBooks(int $limit = 3): array
+    {
+        return $this->createQueryBuilder('r')
+            ->select('l.id, l.titulo, AVG(r.calificacion) as mediaCalificacion')
+            ->join('r.libro', 'l')
+            ->groupBy('l.id')
+            ->orderBy('mediaCalificacion', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
 
 
 

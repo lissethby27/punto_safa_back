@@ -54,6 +54,7 @@ security:
         - { path: ^/resena/actualizar/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/resenas/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/media-calificacion/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/resena/top-libros, roles: PUBLIC_ACCESS }
 
 
 
