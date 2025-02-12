@@ -338,7 +338,6 @@ class LibroController extends AbstractController
     }
 
 
-
     #[Route('/editar/{id}', name: 'editar_libro', methods: ['PUT'])]
     public function editar(int $id, Request $request): JsonResponse
     {
