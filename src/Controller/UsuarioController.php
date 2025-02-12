@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
+
+#[Route('/api')]
 final class UsuarioController extends AbstractController
 {
     private UsuarioRepository $usuarioRepository;
@@ -23,10 +25,11 @@ final class UsuarioController extends AbstractController
     }
 
 
-    #[Route('/api/registro', name: 'app_usuario', methods: ['POST'])]
+    #[Route('/registro', name: 'app_usuario', methods: ['POST'])]
     public function registro(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
     {
         $body = json_decode($request->getContent(), true);
+
 
         // Crear usuario
         $nuevo_usuario = new Usuario();

@@ -2,25 +2,30 @@
 
 namespace App\Controller;
 
+use App\DTO\ClienteDTO;
 use App\Entity\Cliente;
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/cliente')]
 final class ClienteController extends AbstractController
 {
-
     private SerializerInterface $serializer;
+    private ClienteRepository $clienteRepository;
 
-    public function __construct(SerializerInterface $serializer)
+    public function __construct(ClienteRepository $clienteRepository, SerializerInterface $serializer)
     {
+        $this->clienteRepository = $clienteRepository;
         $this->serializer = $serializer;
     }
+
 
     #[Route('/all', name: 'app_cliente', methods: ['GET'])]
     public function getCliente(ClienteRepository $clienteRepository, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
@@ -40,38 +45,27 @@ final class ClienteController extends AbstractController
         return new JsonResponse($json, 200, [], true);
     }
 
-
-
-
-
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
     public function getById(Cliente $cliente, EntityManagerInterface $entityManager): JsonResponse
     {
         $usuario = $cliente->getUsuario();
 
-        // Si el usuario está relacionado con el cliente, lo inicializamos
         if ($usuario) {
-            $entityManager->initializeObject($usuario);  // Cargar la entidad completamente
+            $entityManager->initializeObject($usuario);
         }
 
         if ($usuario) {
-            $rol = $usuario->getRoles(); // Obtener el rol del Usuario
+            $rol = $usuario->getRoles();
         } else {
-            // Manejo si no hay un usuario asociado
             return $this->json(['error' => 'El cliente no tiene usuario asociado'], 404);
         }
 
-        // Serializa la información del cliente
         $json = $this->serializer->serialize($cliente, 'json', [
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
         return new JsonResponse($json, 200, [], true);
     }
-
-
-
-
 
     #[Route('/guardar', name: 'guardar', methods: ['POST'])]
     public function crearCliente(Request $request, EntityManagerInterface $entityManager): JsonResponse
@@ -82,7 +76,6 @@ final class ClienteController extends AbstractController
             return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
-
         $cliente = new Cliente();
         $cliente->setNombre($json_cliente['nombre']);
         $cliente->setApellidos($json_cliente['apellidos']);
@@ -91,36 +84,27 @@ final class ClienteController extends AbstractController
         $cliente->setDireccion($json_cliente['direccion']);
         $cliente->setTelefono($json_cliente['telefono']);
 
-
         $entityManager->persist($cliente);
         $entityManager->flush();
 
         return $this->json(['mensaje' => 'Datos guardados correctamente'], 201);
     }
 
-
-
-
     #[Route('/editar/{id}', name: 'editar', methods: ['PUT'])]
     public function editar(int $id, Request $request, EntityManagerInterface $entityManager, ClienteRepository $clienteRepository): JsonResponse
     {
-        // Obtén los datos del autor desde el cuerpo de la solicitud
         $json_cliente = json_decode($request->getContent(), true);
 
-        // Busca el autor en la base de datos
         $cliente = $clienteRepository->find($id);
 
         if (!$cliente) {
             return $this->json(['error' => 'Clientes no encontrado'], 404);
         }
 
-        // Verifica que todos los datos requeridos estén presentes
         if (!isset($json_cliente['nombre'], $json_cliente['apellidos'], $json_cliente['DNI'], $json_cliente['foto'], $json_cliente['direccion'], $json_cliente['telefono'])) {
             return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
-
-        // Actualiza los datos del autor
         $cliente->setNombre($json_cliente['nombre']);
         $cliente->setApellidos($json_cliente['apellidos']);
         $cliente->setDNI($json_cliente['DNI']);
@@ -128,7 +112,6 @@ final class ClienteController extends AbstractController
         $cliente->setDireccion($json_cliente['direccion']);
         $cliente->setTelefono($json_cliente['telefono']);
 
-        // Guarda los cambios en la base de datos
         $entityManager->flush();
 
         return $this->json(['mensaje' => 'Datos actualizados correctamente']);
@@ -150,10 +133,6 @@ final class ClienteController extends AbstractController
         return new JsonResponse($json, 200, [], true);
     }
 
-
-
-
-
     #[Route('/{id}', name: 'cliente_delete_by_id', methods: ['DELETE'])]
     public function deleteById(int $id, ClienteRepository $clienteRepository, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -170,28 +149,29 @@ final class ClienteController extends AbstractController
     }
 
     #[Route('/auth/user', name: 'auth_user', methods: ['GET'])]
-    public function getAuthenticatedUser(): JsonResponse
+    public function getAuthenticatedUser(ClienteRepository $clienteRepository, SerializerInterface $serializer): JsonResponse
     {
-        $usuario = $this->getUser(); // Symfony obtiene el usuario autenticado
+        // Obtener el usuario autenticado
+        $usuario = $this->getUser();
 
-        if (!$usuario) {
-            return $this->json(['error' => 'Usuario no autenticado'], 401);
+        if (!$usuario instanceof UserInterface) {
+            return $this->json(['error' => 'Usuario no autenticado'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Verificamos si el usuario está asociado a un Cliente
-        $cliente = $usuario->getCliente();
+        // Obtener el cliente asociado al usuario usando el método personalizado en el repositorio
+        $cliente = $clienteRepository->findOneByUsuario($usuario);  // Aquí se usa el método que creaste
 
         if (!$cliente) {
-            return $this->json(['error' => 'No se encontró un cliente asociado al usuario'], 404);
+            return $this->json(['error' => 'No se encontró cliente asociado a este usuario'], Response::HTTP_NOT_FOUND);
         }
 
-        $json = $this->serializer->serialize($cliente, 'json', [
+        // Serializar la respuesta
+        $json = $serializer->serialize($cliente, 'json', [
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
-        return new JsonResponse($json, 200, [], true);
+        return new JsonResponse($json, Response::HTTP_OK, [], true);
     }
-
 
 
 
