@@ -11,7 +11,6 @@ security:
                 property: nick
 
     firewalls:
-
         main:
             lazy: true
             provider: app_user_provider
