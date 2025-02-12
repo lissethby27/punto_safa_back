@@ -10,7 +10,6 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @extends ServiceEntityRepository<Categoria>
  */
-#[Route('/categoria')]
 class CategoriaRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -42,10 +41,4 @@ class CategoriaRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
-
-    #[Route('/all', name: 'listar_categorias', methods: ['GET'])]
-    public function getCategorias(CategoriaRepository $categoriaRepository): JsonResponse {
-        $categorias = $categoriaRepository->findAll();
-        return $this->json($categorias, Response::HTTP_OK);
-    }
 }
