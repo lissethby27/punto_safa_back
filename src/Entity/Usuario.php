@@ -30,6 +30,22 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: "email", type: Types::STRING, length: 150)]
     private ?string $email = null;
+    #[ORM\OneToOne(targetEntity: Cliente::class, mappedBy: "usuario", cascade: ["persist", "remove"])]
+    private ?Cliente $cliente = null;
+
+    public function getCliente(): ?Cliente
+    {
+        return $this->cliente;
+    }
+
+    public function setCliente(?Cliente $cliente): self
+    {
+        $this->cliente = $cliente;
+        if ($cliente !== null && $cliente->getUsuario() !== $this) {
+            $cliente->setUsuario($this);
+        }
+        return $this;
+    }
 
     /**
      * @var Collection<int, Resena>
@@ -72,10 +88,17 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getRoles(): array
+    {
+        return [$this->rol ? 'ROLE_' . strtoupper($this->rol) : 'ROLE_USER'];
+    }
+
+
     public function getRol(): ?string
     {
         return $this->rol;
     }
+
 
     public function setRol(string $rol): static
     {
@@ -108,7 +131,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->usuario->contains($usuario)) {
             $this->usuario->add($usuario);
-            $usuario->setIdUsuario($this);
+            $usuario->setUsuario($this);
         }
 
         return $this;
@@ -118,20 +141,15 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->usuario->removeElement($usuario)) {
             // set the owning side to null (unless already changed)
-            if ($usuario->getIdUsuario() === $this) {
-                $usuario->setIdUsuario(null);
+            if ($usuario->getUsuario() === $this) {
+                $usuario->setUsuario(null);
             }
         }
 
         return $this;
     }
 
-    public function getRoles(): array
-    {
-        $roles = [];
-        $roles[] = $this->rol;
-        return $roles;
-    }
+
 
     public function eraseCredentials(): void
     {
@@ -147,4 +165,9 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->contrasena;
     }
+
+
+
+
+
 }

@@ -40,4 +40,12 @@ class ClienteRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    public function buscarPorNombreParcial(string $nombre)
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.nombre LIKE :nombre')
+            ->setParameter('nombre', '%' . $nombre . '%')
+            ->getQuery()
+            ->getResult();
+    }
 }
