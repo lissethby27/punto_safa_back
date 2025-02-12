@@ -16,6 +16,20 @@ class LibroRepository extends ServiceEntityRepository
         parent::__construct($registry, Libro::class);
     }
 
+    public function searchLibros($query)
+    {
+        return $this->createQueryBuilder('libro')
+            ->innerJoin('libro.autor', 'autor') // Join Autor entity
+            ->addSelect('autor') // Ensure Autor data is included
+            ->where('LOWER(libro.titulo) LIKE LOWER(:query)')
+            ->orWhere('LOWER(autor.nombre) LIKE LOWER(:query)')
+            ->orWhere('LOWER(autor.apellidos) LIKE LOWER(:query)') // FIXED: "apellidos" instead of "apellido"
+            ->setParameter('query', '%' . strtolower($query) . '%') // Case-insensitive search
+            ->getQuery()
+            ->getResult();
+    }
+
+
     public  function ordenarLibros(string $ordenarPor, int $page=1, int $limit=9, ?\DateTime $fecha = null){
         $queyBuilder = $this->createQueryBuilder('libro')
             ->leftJoin('libro.autor', 'a') // 🔹 Join the author table

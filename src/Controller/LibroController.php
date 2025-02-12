@@ -227,30 +227,44 @@ class LibroController extends AbstractController
     }
 
     #[Route('/search', name: 'search_libros', methods: ['GET'])]
-    public function searchLibros(
-        Request $request,
-        LibroRepository $libroRepository
-    ): JsonResponse {
-        // Get the search query from the request
+    public function searchLibros(Request $request, LibroRepository $libroRepository): JsonResponse
+    {
         $query = $request->query->get('q');
 
         if (!$query) {
             return new JsonResponse(['error' => 'Debe proporcionar un término de búsqueda'], Response::HTTP_BAD_REQUEST);
         }
 
-        // Search for libros by title or author
-        $libros = $libroRepository->createQueryBuilder('l')
-            ->leftJoin('l.autor', 'a') // Join with Autor
-            ->where('l.titulo LIKE :query')
-            ->orWhere('a.nombre LIKE :query')
-            ->orWhere('a.apellidos LIKE :query')
-            ->setParameter('query', '%' . $query . '%')
-            ->getQuery()
-            ->getResult();
+        // Use the repository method to fetch matching books
+        $libros = $libroRepository->searchLibros($query);
 
-        return $this->json($libros, JsonResponse::HTTP_OK, []);
+        // Format response to include author's details separately
+        $formattedLibros = array_map(function ($libro) {
+            return [
+                'id' => $libro->getId(),
+                'titulo' => $libro->getTitulo(),
+                'resumen' => $libro->getResumen(),
+                'anio_publicacion' => $libro->getAnioPublicacion(),
+                'precio' => $libro->getPrecio(),
+                'ISBN' => $libro->getISBN(),
+                'editorial' => $libro->getEditorial(),
+                'imagen' => $libro->getImagen(),
+                'idioma' => $libro->getIdioma(),
+                'num_paginas' => $libro->getNumPaginas(),
+                'categoria' => $libro->getCategoria()->getNombre(),
+                'autor' => [
+                    'nombre' => $libro->getAutor()->getNombre(),
+                    'apellidos' => $libro->getAutor()->getApellidos(),
+                ],
+            ];
+        }, $libros);
 
+        return $this->json($formattedLibros, JsonResponse::HTTP_OK, []);
     }
+
+
+
+
 
     #[Route('/ordenar', name: 'search_libros', methods: ['GET'])]
     public function ordenarLibros(Request $request, LibroRepository $libroRepository): JsonResponse{
