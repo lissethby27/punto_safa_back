@@ -41,14 +41,17 @@ class ResenaRepository extends ServiceEntityRepository
     public function findTopRatedBooks(int $limit = 3): array
     {
         return $this->createQueryBuilder('r')
-            ->select('l.id, l.titulo, AVG(r.calificacion) as mediaCalificacion')
+            ->select('l.id, l.titulo, AVG(r.calificacion) as mediaCalificacion, a.nombre as autorNombre, a.apellidos as autorApellidos, l.imagen as imagen, l.resumen as resumen')
             ->join('r.libro', 'l')
-            ->groupBy('l.id')
+            ->join('l.autor', 'a')  // Relación con el autor
+            ->groupBy('l.id, l.titulo, a.nombre, a.apellidos, l.imagen, l.resumen')
             ->orderBy('mediaCalificacion', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
+
+
 
 
 

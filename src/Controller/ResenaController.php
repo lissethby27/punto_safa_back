@@ -192,21 +192,19 @@ class ResenaController extends AbstractController
             return new JsonResponse(0, Response::HTTP_OK);
         }
 
-        return new JsonResponse($media, Response::HTTP_OK);    }
-
-
-
-    #[Route("/top-libros", name: "top_libros", methods: ["GET"])]
-    public function topLibros(): JsonResponse
-    {
-        $topLibros = $this->resenaRepository->findTopRatedBooks();
-
-        return new JsonResponse($topLibros, Response::HTTP_OK);
+        return new JsonResponse($media, Response::HTTP_OK);
     }
 
 
 
+   #[Route("/top-libros", name: "top_libros", methods: ["GET"])]
+   public function topLibros(Request $request): JsonResponse
+   {
+       $limit = $request->query->getInt('limit', 3);
+       $topLibros = $this->resenaRepository->findTopRatedBooks($limit);
 
+       return new JsonResponse($topLibros, Response::HTTP_OK);
+   }
 
 
 }
