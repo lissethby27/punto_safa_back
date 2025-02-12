@@ -23,19 +23,16 @@ class ResenaController extends AbstractController
     private LibroRepository $libroRepository;
     private EntityManagerInterface $entityManager;
     private LineaPedidoRepository $lineaPedidoRepository;
-
     private PedidoRepository $pedidoRepository;
 
-    /**
-     * @param ResenaRepository $resenaRepository
-     * @param UsuarioRepository $usuarioRepository
-     * @param LibroRepository $libroRepository
-     * @param EntityManagerInterface $entityManager
-     * @param LineaPedidoRepository $lineaPedidoRepository
-     * @param PedidoRepository $pedidoRepository
-     */
-    public function __construct(ResenaRepository $resenaRepository, UsuarioRepository $usuarioRepository, LibroRepository $libroRepository, EntityManagerInterface $entityManager, LineaPedidoRepository $lineaPedidoRepository, PedidoRepository $pedidoRepository)
-    {
+    public function __construct(
+        ResenaRepository $resenaRepository,
+        UsuarioRepository $usuarioRepository,
+        LibroRepository $libroRepository,
+        EntityManagerInterface $entityManager,
+        LineaPedidoRepository $lineaPedidoRepository,
+        PedidoRepository $pedidoRepository
+    ) {
         $this->resenaRepository = $resenaRepository;
         $this->usuarioRepository = $usuarioRepository;
         $this->libroRepository = $libroRepository;
@@ -46,197 +43,171 @@ class ResenaController extends AbstractController
 
     private function verificarCompra(int $usuarioId, int $libroId): bool
     {
-        // Verificar si el usuario ha comprado el libro
         $pedidos = $this->pedidoRepository->findByUsuario($usuarioId);
         foreach ($pedidos as $pedido) {
-            $lineas = $this->lineaPedidoRepository->findByPedido($pedido->getId());
-            foreach ($lineas as $linea) {
+            foreach ($this->lineaPedidoRepository->findByPedido($pedido->getId()) as $linea) {
                 if ($linea->getLibro()->getId() === $libroId) {
-                    return true; // El usuario compró el libro
+                    return true;
                 }
             }
         }
-        return false; // El usuario no ha comprado el libro
+        return false;
     }
-
-
-
 
     #[Route("/nueva", name: "nueva_resena", methods: ["POST"])]
     public function nueva(Request $request): JsonResponse
     {
-        // Decodificar los datos de la petición y validar que existen porque son requeridos para crear una reseña
         $dataResena = json_decode($request->getContent(), true);
 
         if (!isset($dataResena['usuario'], $dataResena['libro'], $dataResena['calificacion'], $dataResena['comentario'])) {
-            return new JsonResponse(['mensaje' => 'Datos incompletos. Se requieren usuario, libro, calificación y comentario.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['mensaje' => 'Datos incompletos.'], Response::HTTP_BAD_REQUEST);
         }
 
         $usuario = $this->usuarioRepository->find($dataResena['usuario']);
         $libro = $this->libroRepository->find($dataResena['libro']);
 
-        if (!$usuario) {
-            return new JsonResponse(['mensaje' => 'Usuario no encontrado.'], Response::HTTP_NOT_FOUND);
-        }
-        if (!$libro) {
-            return new JsonResponse(['mensaje' => 'Libro no encontrado.'], Response::HTTP_NOT_FOUND);
+        if (!$usuario || !$libro) {
+            return new JsonResponse(['mensaje' => 'Usuario o libro no encontrado.'], Response::HTTP_NOT_FOUND);
         }
 
-        // Verificar si el usuario ha comprado el libro
         if (!$this->verificarCompra($usuario->getId(), $libro->getId())) {
-            return new JsonResponse(['mensaje' => 'El usuario debe haber comprado el libro para poder dejar una reseña.'], Response::HTTP_FORBIDDEN);
+            return new JsonResponse(['mensaje' => 'Debes comprar el libro para reseñarlo.'], Response::HTTP_FORBIDDEN);
         }
 
-        // Verificar si el usuario ya ha reseñado el libro
-        $yaReseno = $this->resenaRepository->usuarioYaResenoLibro($usuario->getId(), $libro->getId());
-        if ($yaReseno) {
+        if ($this->resenaRepository->usuarioYaResenoLibro($usuario->getId(), $libro->getId())) {
             return new JsonResponse(['mensaje' => 'Solo puedes hacer una reseña por libro.'], Response::HTTP_CONFLICT);
         }
 
-        // Verificar si el usuario ya ha hecho una reseña para este libro (Error 409 Conflict)
-        $yaReseno = $this->resenaRepository->usuarioYaResenoLibro($usuario->getId(), $libro->getId());
-        if ($yaReseno) {
-            return new JsonResponse(['mensaje' => 'Solo puedes hacer una reseña por libro.'], Response::HTTP_CONFLICT);
-        }
-
-        // Validar que la calificación es un número entre 1 y 5
         if (!is_numeric($dataResena['calificacion']) || $dataResena['calificacion'] < 1 || $dataResena['calificacion'] > 5) {
             return new JsonResponse(['mensaje' => 'La calificación debe ser un número entre 1 y 5.'], Response::HTTP_BAD_REQUEST);
         }
 
-        //Validar que el comentario no esté vacío ni sea nulo ni tenga más de 200 caracteres
         if (empty($dataResena['comentario']) || strlen($dataResena['comentario']) > 200) {
-            return new JsonResponse(['mensaje' => 'El comentario no puede estar vacío ni tener más de 200 caracteres.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['mensaje' => 'Comentario inválido.'], Response::HTTP_BAD_REQUEST);
         }
 
-
         $nuevaResena = new Resena();
-        $nuevaResena->setUsuario($usuario);
-        $nuevaResena->setLibro($libro);
-        $nuevaResena->setComentario($dataResena['comentario']);
-        $nuevaResena->setFecha(new \DateTime('now'));
-        $nuevaResena->setCalificacion($dataResena['calificacion']);
+        $nuevaResena->setUsuario($usuario)
+            ->setLibro($libro)
+            ->setComentario($dataResena['comentario'])
+            ->setFecha(new \DateTime('now'))
+            ->setCalificacion($dataResena['calificacion']);
 
         $this->entityManager->persist($nuevaResena);
         $this->entityManager->flush();
 
-        // Devolver la nueva reseña creada con el código 201 Created
         return new JsonResponse([
-            'id'           => $nuevaResena->getId(),
-            'usuario'      => $nuevaResena->getUsuario()->getId(),
-            'libro'        => $nuevaResena->getLibro()->getId(),
+            'id' => $nuevaResena->getId(),
+            'usuario' => $usuario->getId(),
+            'libro' => $libro->getId(),
             'calificacion' => $nuevaResena->getCalificacion(),
-            'comentario'   => $nuevaResena->getComentario(),
-            'fecha'        => $nuevaResena->getFechaFormatted()
+            'comentario' => $nuevaResena->getComentario(),
+            'fecha' => $nuevaResena->getFechaFormatted()
         ], Response::HTTP_CREATED);
     }
 
     #[Route("/listar", name: "listar_resenas", methods: ["GET"])]
     public function listar(): JsonResponse
     {
-        $resenas = $this->resenaRepository->findAll();
-        $data = [];
-
-        foreach ($resenas as $resena) {
-            $data[] = [
-                'id'           => $resena->getId(),
-                'usuario'      => $resena->getUsuario()->getId(),
-                'libro'        => $resena->getLibro()->getId(),
-                'calificacion' => $resena->getCalificacion(),
-                'comentario'   => $resena->getComentario(),
-                'fecha'        => $resena->getFechaFormatted()
-            ];
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+        return new JsonResponse(array_map(fn($resena) => [
+            'id' => $resena->getId(),
+            'usuario' => $resena->getUsuario()->getId(),
+            'libro' => $resena->getLibro()->getId(),
+            'calificacion' => $resena->getCalificacion(),
+            'comentario' => $resena->getComentario(),
+            'fecha' => $resena->getFechaFormatted()
+        ], $this->resenaRepository->findAll()), Response::HTTP_OK);
     }
 
     #[Route("/mostrar/{id}", name: "mostrar_resena", methods: ["GET"])]
     public function mostrar(int $id): JsonResponse
     {
         $resena = $this->resenaRepository->find($id);
-
-        if (!$resena) {
-            return new JsonResponse(['mensaje' => 'Reseña no encontrada.'], Response::HTTP_NOT_FOUND);
-        }
-
-        // Devolver la reseña con el código 200 OK
-        return new JsonResponse([
-            'id'           => $resena->getId(),
-            'usuario'      => $resena->getUsuario()->getId(),
-            'libro'        => $resena->getLibro()->getId(),
+        return $resena ? new JsonResponse([
+            'id' => $resena->getId(),
+            'usuario' => $resena->getUsuario()->getId(),
+            'libro' => $resena->getLibro()->getId(),
             'calificacion' => $resena->getCalificacion(),
-            'comentario'   => $resena->getComentario(),
-            'fecha'        => $resena->getFechaFormatted()
-        ], Response::HTTP_OK);
+            'comentario' => $resena->getComentario(),
+            'fecha' => $resena->getFechaFormatted()
+        ], Response::HTTP_OK) : new JsonResponse(['mensaje' => 'Reseña no encontrada.'], Response::HTTP_NOT_FOUND);
     }
-
 
     #[Route("/actualizar/{id}", name: "actualizar_resena", methods: ["PUT"])]
     public function editar(int $id, Request $request): JsonResponse
-
     {
         $resena = $this->resenaRepository->find($id);
-        $resena->setFecha(new \DateTime('now'));
-
-        //Si la reseña no existe, devolver un error 404 Not Found
         if (!$resena) {
             return new JsonResponse(['mensaje' => 'Reseña no encontrada.'], Response::HTTP_NOT_FOUND);
         }
 
-        // Decodificar los datos de la petición y validar que existen porque son requeridos para actualizar
         $dataResena = json_decode($request->getContent(), true);
-
-        // Validar que los datos requeridos existen
-        if (isset($dataResena['usuario'])) {
-            $usuario = $this->usuarioRepository->find($dataResena['usuario']);
-            if (!$usuario) {
-                return new JsonResponse(['mensaje' => 'Usuario no encontrado.'], Response::HTTP_NOT_FOUND);
-            }
-            $resena->setUsuario($usuario);
+        if (isset($dataResena['calificacion']) && (!is_numeric($dataResena['calificacion']) || $dataResena['calificacion'] < 1 || $dataResena['calificacion'] > 5)) {
+            return new JsonResponse(['mensaje' => 'Calificación inválida.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if (isset($dataResena['libro'])) {
-            $libro = $this->libroRepository->find($dataResena['libro']);
-            if (!$libro) {
-                return new JsonResponse(['mensaje' => 'Libro no encontrado.'], Response::HTTP_NOT_FOUND);
-            }
-            $resena->setLibro($libro);
+        if (isset($dataResena['comentario']) && (empty($dataResena['comentario']) || strlen($dataResena['comentario']) > 200)) {
+            return new JsonResponse(['mensaje' => 'Comentario inválido.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if (isset($dataResena['calificacion'])) {
-            if (!is_numeric($dataResena['calificacion']) || $dataResena['calificacion'] < 1 || $dataResena['calificacion'] > 5) {
-                return new JsonResponse(['mensaje' => 'La calificación debe ser un número entre 1 y 5.'], Response::HTTP_BAD_REQUEST);
-            }
-            $resena->setCalificacion($dataResena['calificacion']);
-        }
-
-        if (isset($dataResena['comentario'])) {
-            $resena->setComentario($dataResena['comentario']);
-        }
-        // Validar que la fecha es válida y actualizar si existe en los datos de la petición
-        if (isset($dataResena['fecha'])) {
-            $resena->setFecha(new \DateTime($dataResena['fecha']));
-        }
+        $resena->setCalificacion($dataResena['calificacion'] ?? $resena->getCalificacion())
+            ->setComentario($dataResena['comentario'] ?? $resena->getComentario())
+            ->setFecha(new \DateTime());
 
         $this->entityManager->flush();
 
-        return new JsonResponse(['mensaje' => 'Reseña actualizada correctamente.', 'fecha_edicion' => $resena->getFechaFormatted()], Response::HTTP_OK);
-
+        return new JsonResponse(['mensaje' => 'Reseña actualizada.'], Response::HTTP_OK);
     }
 
-    #[Route("/eliminar/{id}", name: "eliminar_resena", methods: ["DELETE"])]
-    public function eliminar(int $id): JsonResponse
+    #[Route("/resenas/{id_libro}", name: "mostrar_resenas_libro", methods: ["GET"])]
+    public function mostrarResenasPorLibro(int $id_libro): JsonResponse
     {
-        $resena = $this->resenaRepository->find($id);
+        $resenas = $this->resenaRepository->findBy(['libro' => $id_libro]);
 
-        if (!$resena) {
-            return new JsonResponse(['mensaje' => 'Reseña no encontrada.'], Response::HTTP_NOT_FOUND);
+        if (!$resenas) {
+            return new JsonResponse(['mensaje' => 'No hay reseñas para este libro.'], Response::HTTP_OK);
         }
 
-        $this->entityManager->remove($resena);
-        $this->entityManager->flush();
+        // Formateamos las reseñas para enviarlas en JSON
+        $resenasArray = array_map(function ($resena) {
+            return [
+                'id'           => $resena->getId(),
+                'usuario'      => $resena->getUsuario()->getNick(),
+                'libro'        => $resena->getLibro()->getId(),
+                'calificacion' => $resena->getCalificacion(),
+                'comentario'   => $resena->getComentario(),
+                'fecha'        => $resena->getFechaFormatted()
+            ];
+        }, $resenas);
 
-        return new JsonResponse(['mensaje' => 'Reseña eliminada correctamente.'], Response::HTTP_OK);
+        return new JsonResponse($resenasArray, Response::HTTP_OK);
     }
+
+    #[Route("/media-calificacion/{id_libro}", name: "media_calificacion_libro", methods: ["GET"])]
+    public function mediaCalificacionPorLibro(int $id_libro): JsonResponse
+    {
+        $media = $this->resenaRepository->calcularMediaCalificacionPorLibro($id_libro);
+
+        if ($media === null) {
+            return new JsonResponse(0, Response::HTTP_OK);
+        }
+
+        return new JsonResponse($media, Response::HTTP_OK);
+    }
+
+
+
+   #[Route("/top-libros", name: "top_libros", methods: ["GET"])]
+   public function topLibros(Request $request): JsonResponse
+   {
+       $limit = $request->query->getInt('limit', 3);
+       $topLibros = array_map(function ($libro) {
+           $libro['mediaCalificacion'] = number_format((float)$libro['mediaCalificacion'], 1, '.', '');
+           return $libro;
+       }, $this->resenaRepository->findTopRatedBooks($limit));
+
+       return new JsonResponse($topLibros, Response::HTTP_OK);
+   }
+
+
 }

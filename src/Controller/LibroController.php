@@ -204,26 +204,22 @@ class LibroController extends AbstractController
                                 break;
             default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
         }
-        return $this->json($listaLibros, Response::HTTP_OK, [], ['groups' => ['libro_list']]);
+        return $this->json($listaLibros, Response::HTTP_OK, []);
 
     }
 
 
-    //Filtro de libros por categoría para obtener los libros de una categoría específica
 
-
-    // Filtro de libros por categoria (id)
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
     public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
-        // Buscar la categoría por su ID
+
         $categoria = $categoriaRepository->find($id);
 
         if(!$categoria){
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
         }
 
-        // Buscar libros que pertenezcan a la categoría
-        $libros = $libroRepository->findBy(['categoria' => $categoria]);
+        $libros = $libroRepository->findBy(['id' => $categoria]);
 
 
         return $this->json($libros, Response::HTTP_OK, []);
@@ -336,13 +332,8 @@ class LibroController extends AbstractController
                 $libro->setPrecio($editarLibro['precio']);
             }
 
-
             // Editar ISBN (con validación)
             if (isset($editarLibro['ISBN'])) {
-                $existingLibro = $this->libroRepository->findOneBy(['ISBN' => $editarLibro['ISBN']]);
-                if ($existingLibro && $existingLibro->getId() !== $libro->getId()) {
-                    return new JsonResponse(['mensaje' => 'El ISBN ya está en uso por otro libro'], 400);
-                }
                 if (!preg_match('/^\d{10}(\d{3})?$/', str_replace('-', '', $editarLibro['ISBN']))) {
                     return new JsonResponse(['mensaje' => 'Formato de ISBN inválido'], 400);
                 }
