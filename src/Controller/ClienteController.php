@@ -101,13 +101,11 @@ final class ClienteController extends AbstractController
             return $this->json(['error' => 'Clientes no encontrado'], 404);
         }
 
-        if (!isset($json_cliente['nombre'], $json_cliente['apellidos'], $json_cliente['DNI'], $json_cliente['foto'], $json_cliente['direccion'], $json_cliente['telefono'])) {
+        if (!isset($json_cliente['foto'], $json_cliente['direccion'], $json_cliente['telefono'])) {
             return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
-        $cliente->setNombre($json_cliente['nombre']);
-        $cliente->setApellidos($json_cliente['apellidos']);
-        $cliente->setDNI($json_cliente['DNI']);
+
         $cliente->setFoto($json_cliente['foto']);
         $cliente->setDireccion($json_cliente['direccion']);
         $cliente->setTelefono($json_cliente['telefono']);
