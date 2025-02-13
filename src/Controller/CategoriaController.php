@@ -35,6 +35,12 @@ final class CategoriaController extends AbstractController
         return new JsonResponse($json, 200, [], true);
     }
 
+//    #[Route('/all', name: 'listar_categorias', methods: ['GET'])]
+//    public function getCategorias(CategoriaRepository $categoriaRepository): JsonResponse {
+//        $categorias = $categoriaRepository->findAll();
+//        return $this->json($categorias, Response::HTTP_OK);
+//    }
+
     #[Route('/{id}', name: 'categoria_by_id', methods: ['GET'])]
     public function getById(int $id, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
