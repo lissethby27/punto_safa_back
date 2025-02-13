@@ -17,7 +17,6 @@ class Cliente
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
     private ?string $nombre = null;
-
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
     private ?string $apellidos = null;
 
@@ -33,8 +32,12 @@ class Cliente
     #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
     private ?string $telefono = null;
 
-    #[ORM\Column(name: "id_usuario", type: Types::INTEGER)]
-    private ?int $id_usuario = null;
+    #[ORM\ManyToOne(targetEntity: Usuario::class, fetch: "EAGER")]
+    #[ORM\JoinColumn(name: "id_usuario", referencedColumnName: "id", nullable: false)]
+    private ?Usuario $usuario = null;
+
+
+
 
     public function getId(): ?int
     {
@@ -52,6 +55,8 @@ class Cliente
 
         return $this;
     }
+
+
 
     public function getApellidos(): ?string
     {
@@ -113,15 +118,15 @@ class Cliente
         return $this;
     }
 
-    public function getIdUsuario(): ?int
+
+    public function getUsuario(): ?Usuario
     {
-        return $this->id_usuario;
+        return $this->usuario;
     }
 
-    public function setIdUsuario(int $id_usuario): static
+    public function setUsuario(Usuario $usuario): static
     {
-        $this->id_usuario = $id_usuario;
-
+        $this->usuario = $usuario;
         return $this;
     }
 }

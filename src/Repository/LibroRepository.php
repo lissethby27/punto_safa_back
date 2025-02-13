@@ -16,6 +16,12 @@ class LibroRepository extends ServiceEntityRepository
         parent::__construct($registry, Libro::class);
     }
 
+
+
+
+
+
+
     //    /**
     //     * @return Libro[] Returns an array of Libro objects
     //     */

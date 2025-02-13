@@ -4,7 +4,7 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+#        users_in_memory: { memory: null }
         app_user_provider:
             entity:
                 class: App\Entity\Usuario
@@ -12,19 +12,18 @@ security:
 
     firewalls:
 
-        main:
-            lazy: true
-            provider: app_user_provider
+        api_login:
+            pattern: ^/api/login
+            stateless: true
             json_login:
                 check_path: /api/login_check
-                #                username_path: email
-                #                password_path: password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-#        api:
-#            pattern: ^/api/
-#            stateless: true
-#            jwt: ~
+        api:
+            pattern: ^/api/
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -37,6 +36,30 @@ security:
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api,       roles: PUBLIC_ACCESS }
+        - { path: ^/usuario,       roles: PUBLIC_ACCESS }
+        - { path: ^/autor,     roles: PUBLIC_ACCESS }
+        - { path: ^/autor/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/autor/guardar, roles: PUBLIC_ACCESS }
+        - { path: ^/autor/editar, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - { path: ^/categoria,     roles: PUBLIC_ACCESS }
+        - {path: ^/libro/all, roles: PUBLIC_ACCESS}
+        - {path: ^/libro/\d+, roles: PUBLIC_ACCESS}
+        - {path: ^/libro/guardar, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - {path: ^/libro/editar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - {path: ^/libro/eliminar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - { path: ^/resena/nueva, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
+        - { path: ^/resena/listar, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
+        - { path: ^/resena/mostrar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
+        - { path: ^/resena/eliminar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
+        - { path: ^/resena/actualizar/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/api/cliente/auth/user, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/cliente,     roles: PUBLIC_ACCESS }
+        - { path: ^/cliente/guardar, roles: PUBLIC_ACCESS }
+        - { path: ^/cliente/editar, roles: PUBLIC_ACCESS }   #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+
+
+
+
 
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

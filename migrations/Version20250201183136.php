@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250126215755 extends AbstractMigration
+final class Version20250201183136 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -19,7 +19,6 @@ final class Version20250126215755 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('CREATE SCHEMA puntosafa');
         // this up() migration is auto-generated, please modify it to your needs
 
     }
@@ -27,8 +26,9 @@ final class Version20250126215755 extends AbstractMigration
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE SCHEMA puntosafa');
-
-
+        $this->addSql('CREATE SCHEMA public');
+        $this->addSql('CREATE SCHEMA safajobs');
+        $this->addSql('CREATE SCHEMA restaurante');
+        $this->addSql('CREATE SCHEMA goodgather');
     }
 }

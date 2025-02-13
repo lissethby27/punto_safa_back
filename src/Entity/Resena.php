@@ -96,4 +96,12 @@ class Resena
 
         return $this;
     }
+
+    public function getFechaFormatted(): string
+    {
+        return $this->fecha ? $this->fecha->format('Y-m-d') : '';
+    }
+
+
+
 }

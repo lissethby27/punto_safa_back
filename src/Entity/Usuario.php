@@ -34,8 +34,9 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Resena>
      */
-    // #[ORM\OneToMany(targetEntity: Resena::class, mappedBy: 'usuario')]
-    // private Collection $usuario;
+     #[ORM\OneToMany(targetEntity: Resena::class, mappedBy: 'usuario')]
+     private Collection $usuario;
+
 
     public function __construct()
     {
@@ -71,10 +72,17 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getRoles(): array
+    {
+        return [$this->rol ? 'ROLE_' . strtoupper($this->rol) : 'ROLE_USER'];
+    }
+
+
     public function getRol(): ?string
     {
         return $this->rol;
     }
+
 
     public function setRol(string $rol): static
     {
@@ -107,7 +115,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->usuario->contains($usuario)) {
             $this->usuario->add($usuario);
-            $usuario->setIdUsuario($this);
+            $usuario->setUsuario($this);
         }
 
         return $this;
@@ -117,20 +125,15 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->usuario->removeElement($usuario)) {
             // set the owning side to null (unless already changed)
-            if ($usuario->getIdUsuario() === $this) {
-                $usuario->setIdUsuario(null);
+            if ($usuario->getUsuario() === $this) {
+                $usuario->setUsuario(null);
             }
         }
 
         return $this;
     }
 
-    public function getRoles(): array
-    {
-        $roles = [];
-        $roles[] = $this->rol;
-        return $roles;
-    }
+
 
     public function eraseCredentials(): void
     {
@@ -146,4 +149,9 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->contrasena;
     }
+
+
+
+
+
 }

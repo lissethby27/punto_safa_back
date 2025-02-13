@@ -15,6 +15,14 @@ class AutorRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Autor::class);
     }
+    public function buscarPorNombreParcial(string $nombre)
+    {
+        return $this->createQueryBuilder('a')
+            ->where('a.nombre LIKE :nombre')
+            ->setParameter('nombre', "%$nombre%")
+            ->getQuery()
+            ->getResult();
+    }
 
     //    /**
     //     * @return Autor[] Returns an array of Autor objects
