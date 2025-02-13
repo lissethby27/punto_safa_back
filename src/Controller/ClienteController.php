@@ -6,6 +6,7 @@ use App\Entity\Cliente;
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -59,12 +60,17 @@ final class ClienteController extends AbstractController
             return $this->json(['error' => 'El cliente no tiene usuario asociado'], 404);
         }
 
+        // Serializa la información del cliente
         $json = $this->serializer->serialize($cliente, 'json', [
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
         return new JsonResponse($json, 200, [], true);
     }
+
+
+
+
 
     #[Route('/guardar', name: 'guardar', methods: ['POST'])]
     public function crearCliente(Request $request, EntityManagerInterface $entityManager): JsonResponse
@@ -75,6 +81,7 @@ final class ClienteController extends AbstractController
             return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
+
         $cliente = new Cliente();
         $cliente->setNombre($json_cliente['nombre']);
         $cliente->setApellidos($json_cliente['apellidos']);
@@ -83,27 +90,36 @@ final class ClienteController extends AbstractController
         $cliente->setDireccion($json_cliente['direccion']);
         $cliente->setTelefono($json_cliente['telefono']);
 
+
         $entityManager->persist($cliente);
         $entityManager->flush();
 
         return $this->json(['mensaje' => 'Datos guardados correctamente'], 201);
     }
 
+
+
+
     #[Route('/editar/{id}', name: 'editar', methods: ['PUT'])]
     public function editar(int $id, Request $request, EntityManagerInterface $entityManager, ClienteRepository $clienteRepository): JsonResponse
     {
+        // Obtén los datos del autor desde el cuerpo de la solicitud
         $json_cliente = json_decode($request->getContent(), true);
 
+        // Busca el autor en la base de datos
         $cliente = $clienteRepository->find($id);
 
         if (!$cliente) {
             return $this->json(['error' => 'Clientes no encontrado'], 404);
         }
 
+        // Verifica que todos los datos requeridos estén presentes
         if (!isset($json_cliente['nombre'], $json_cliente['apellidos'], $json_cliente['DNI'], $json_cliente['foto'], $json_cliente['direccion'], $json_cliente['telefono'])) {
             return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
+
+        // Actualiza los datos del autor
         $cliente->setNombre($json_cliente['nombre']);
         $cliente->setApellidos($json_cliente['apellidos']);
         $cliente->setDNI($json_cliente['DNI']);
@@ -111,6 +127,7 @@ final class ClienteController extends AbstractController
         $cliente->setDireccion($json_cliente['direccion']);
         $cliente->setTelefono($json_cliente['telefono']);
 
+        // Guarda los cambios en la base de datos
         $entityManager->flush();
 
         return $this->json(['mensaje' => 'Datos actualizados correctamente']);
@@ -131,6 +148,10 @@ final class ClienteController extends AbstractController
 
         return new JsonResponse($json, 200, [], true);
     }
+
+
+
+
 
     #[Route('/{id}', name: 'cliente_delete_by_id', methods: ['DELETE'])]
     public function deleteById(int $id, ClienteRepository $clienteRepository, EntityManagerInterface $entityManager): JsonResponse
@@ -164,13 +185,13 @@ final class ClienteController extends AbstractController
             return $this->json(['error' => 'No se encontró cliente asociado a este usuario'], Response::HTTP_NOT_FOUND);
         }
 
-        // Serializar la respuesta
-        $json = $serializer->serialize($cliente, 'json', [
+        $json = $this->serializer->serialize($cliente, 'json', [
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
-        return new JsonResponse($json, Response::HTTP_OK, [], true);
+        return new JsonResponse($json, 200, [], true);
     }
+
 
 
 
