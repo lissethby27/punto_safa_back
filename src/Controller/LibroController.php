@@ -134,7 +134,7 @@ class LibroController extends AbstractController
     {
         // Obtener parámetros de paginación que es opcional y por defecto es 1 y 10 respectivamente
         $page = $request->query->getInt('page', 1);
-        $limit = $request->query->getInt('limit', 10);
+        $limit = $request->query->getInt('limit', 9);
 
         // Crear consulta personalizada para evitar referencias circulares y mostrar datos relacionados de forma más clara
         $query = $libroRepository->createQueryBuilder('l')
@@ -151,7 +151,13 @@ class LibroController extends AbstractController
         $jsonLibros = $this->serializer->serialize($listaLibros, 'json', [
             AbstractNormalizer::CALLBACKS => [
                 'categoria' => fn($innerObject) => $innerObject ? $innerObject->getNombre() : null,
-                'autor' => fn($innerObject) => $innerObject ? $innerObject->getNombre() . ' ' . $innerObject->getApellidos() : null,
+                'autor' => fn($innerObject) => $innerObject ? [
+
+                    'nombre' => $innerObject->getNombre(),
+
+                    'apellidos' => $innerObject->getApellidos(),
+
+                ] : null,
                 'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null,
                 'lineaPedidos' => fn($innerObject) => null,
             ],
