@@ -134,7 +134,7 @@ class LibroController extends AbstractController
     {
         // Obtener parámetros de paginación que es opcional y por defecto es 1 y 10 respectivamente
         $page = $request->query->getInt('page', 1);
-        $limit = $request->query->getInt('limit', 10);
+        $limit = $request->query->getInt('limit', 9);
 
         // Crear consulta personalizada para evitar referencias circulares y mostrar datos relacionados de forma más clara
         $query = $libroRepository->createQueryBuilder('l')
@@ -151,7 +151,13 @@ class LibroController extends AbstractController
         $jsonLibros = $this->serializer->serialize($listaLibros, 'json', [
             AbstractNormalizer::CALLBACKS => [
                 'categoria' => fn($innerObject) => $innerObject ? $innerObject->getNombre() : null,
-                'autor' => fn($innerObject) => $innerObject ? $innerObject->getNombre() . ' ' . $innerObject->getApellidos() : null,
+                'autor' => fn($innerObject) => $innerObject ? [
+
+                    'nombre' => $innerObject->getNombre(),
+
+                    'apellidos' => $innerObject->getApellidos(),
+
+                ] : null,
                 'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null,
                 'lineaPedidos' => fn($innerObject) => null,
             ],
@@ -171,37 +177,37 @@ class LibroController extends AbstractController
                     ->getQuery()
                     ->getResult();
                 break;
-                case '5-10':
-                    $listaLibros = $libroRepository->createQueryBuilder('l')
-                        ->where('l.precio BETWEEN :min AND :max')
-                        ->setParameter('min', 5)
-                        ->setParameter('max', 10)
-                        ->getQuery()
-                        ->getResult();
-                    break;
-                    case '10-15':
-                        $listaLibros = $libroRepository->createQueryBuilder('l')
-                            ->where('l.precio BETWEEN :min AND :max')
-                            ->setParameter('min', 10)
-                            ->setParameter('max', 15)
-                            ->getQuery()
-                            ->getResult();
-                        break;
-                        case '15-40':
-                            $listaLibros = $libroRepository->createQueryBuilder('l')
-                                ->where('l.precio BETWEEN :min AND :max')
-                                ->setParameter('min', 15)
-                                ->setParameter('max', 40)
-                                ->getQuery()
-                                ->getResult();
-                            break;
-                            case 'mayor40':
-                                $listaLibros = $libroRepository->createQueryBuilder('l')
-                                    ->where('l.precio> :precio')
-                                    ->setParameter('precio', 40)
-                                    ->getQuery()
-                                    ->getResult();
-                                break;
+            case '5-10':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio BETWEEN :min AND :max')
+                    ->setParameter('min', 5)
+                    ->setParameter('max', 10)
+                    ->getQuery()
+                    ->getResult();
+                break;
+            case '10-15':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio BETWEEN :min AND :max')
+                    ->setParameter('min', 10)
+                    ->setParameter('max', 15)
+                    ->getQuery()
+                    ->getResult();
+                break;
+            case '15-40':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio BETWEEN :min AND :max')
+                    ->setParameter('min', 15)
+                    ->setParameter('max', 40)
+                    ->getQuery()
+                    ->getResult();
+                break;
+            case 'mayor40':
+                $listaLibros = $libroRepository->createQueryBuilder('l')
+                    ->where('l.precio> :precio')
+                    ->setParameter('precio', 40)
+                    ->getQuery()
+                    ->getResult();
+                break;
             default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
         }
         return $this->json($listaLibros, Response::HTTP_OK, []);
@@ -212,14 +218,13 @@ class LibroController extends AbstractController
 
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
     public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
-        // Buscar la categoría por su ID
+
         $categoria = $categoriaRepository->find($id);
 
         if(!$categoria){
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
         }
 
-        // Buscar libros que pertenezcan a la categoría
         $libros = $libroRepository->findBy(['categoria' => $categoria]);
 
 
@@ -249,7 +254,7 @@ class LibroController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        return $this->json($libros, JsonResponse::HTTP_OK, [], ['groups' => ['libro_list']]);
+        return $this->json($libros, JsonResponse::HTTP_OK, []);
 
     }
 

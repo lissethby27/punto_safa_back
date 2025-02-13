@@ -30,6 +30,22 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: "email", type: Types::STRING, length: 150)]
     private ?string $email = null;
+    #[ORM\OneToOne(targetEntity: Cliente::class, mappedBy: "usuario", cascade: ["persist", "remove"])]
+    private ?Cliente $cliente = null;
+
+    public function getCliente(): ?Cliente
+    {
+        return $this->cliente;
+    }
+
+    public function setCliente(?Cliente $cliente): self
+    {
+        $this->cliente = $cliente;
+        if ($cliente !== null && $cliente->getUsuario() !== $this) {
+            $cliente->setUsuario($this);
+        }
+        return $this;
+    }
 
     /**
      * @var Collection<int, Resena>
