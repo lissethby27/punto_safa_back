@@ -232,90 +232,33 @@ class LibroController extends AbstractController
 
     }
 
-//    #[Route('/search', name: 'search_libros', methods: ['GET'])]
-//    public function searchLibros(Request $request, LibroRepository $libroRepository): JsonResponse
-//    {
-//        $query = $request->query->get('q');
-//
-//        if (!$query) {
-//            return new JsonResponse(['error' => 'Debe proporcionar un término de búsqueda'], Response::HTTP_BAD_REQUEST);
-//        }
-//
-//        // Use the repository method to fetch matching books
-//        $libros = $libroRepository->searchLibros($query);
-//
-//        // Format response to include author's details separately
-//        $formattedLibros = array_map(function ($libro) {
-//            return [
-//                'id' => $libro->getId(),
-//                'titulo' => $libro->getTitulo(),
-//                'resumen' => $libro->getResumen(),
-//                'anio_publicacion' => $libro->getAnioPublicacion(),
-//                'precio' => $libro->getPrecio(),
-//                'ISBN' => $libro->getISBN(),
-//                'editorial' => $libro->getEditorial(),
-//                'imagen' => $libro->getImagen(),
-//                'idioma' => $libro->getIdioma(),
-//                'num_paginas' => $libro->getNumPaginas(),
-//                'categoria' => $libro->getCategoria()->getNombre(),
-//                'autor' => [
-//                    'nombre' => $libro->getAutor()->getNombre(),
-//                    'apellidos' => $libro->getAutor()->getApellidos(),
-//                ],
-//            ];
-//        }, $libros);
-//
-//        return $this->json($formattedLibros, JsonResponse::HTTP_OK, []);
-//    }
+    #[Route('/search', name: 'search_libros', methods: ['GET'])]
+    public function searchLibros(
+        Request $request,
+        LibroRepository $libroRepository
+    ): JsonResponse {
+        // Get the search query from the request
+        $query = $request->query->get('q');
 
-
-
-
-
-
-
-
-
-
-
-
-    #[Route('/ordenar', name: 'search_libros', methods: ['GET'])]
-    public function ordenarLibros(Request $request, LibroRepository $libroRepository): JsonResponse{
-        $ordenarPor = $request->query->get('ordenarPor', 'titulo');
-        $opcionesOrdenar = ['precio', 'titulo', 'autor', 'fecha'];
-
-        if(!in_array($ordenarPor, $opcionesOrdenar)){
-            $ordenarPor = 'titulo';
+        if (!$query) {
+            return new JsonResponse(['error' => 'Debe proporcionar un término de búsqueda'], Response::HTTP_BAD_REQUEST);
         }
 
-        $page = $request->query->getInt('page', 1);
-        $limit = $request->query->getInt('limit', 9);
+        // Search for libros by title or author
+        $libros = $libroRepository->createQueryBuilder('l')
+            ->leftJoin('l.autor', 'a') // Join with Autor
+            ->where('l.titulo LIKE :query')
+            ->orWhere('a.nombre LIKE :query')
+            ->orWhere('a.apellidos LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->getQuery()
+            ->getResult();
 
-        $fechaString = $request->query->get('fecha', null);
-        $fecha = null;
+        return $this->json($libros, JsonResponse::HTTP_OK, []);
 
-
-        if ($fechaString) {
-            try {
-                $fecha = new \DateTime($fechaString);
-            } catch (\Exception $e) {
-                return new JsonResponse(['error' => 'Invalid date format'], Response::HTTP_BAD_REQUEST);
-            }
-        }
-
-
-        $libros = $libroRepository->ordenarLibros($ordenarPor,  $page, $limit, $fecha,);
-
-        $libros = array_map(function ($libro) {
-            $libro['anio_publicacion'] = $libro['anio_publicacion'] instanceof \DateTimeInterface
-                ? $libro['anio_publicacion']->format('Y-m-d')
-                : null;
-            return $libro;
-        }, $libros);
-
-
-        return new JsonResponse($libros, Response::HTTP_OK, []);
     }
+
+
 
 
     //Llamar a  un libro por su id
@@ -349,6 +292,7 @@ class LibroController extends AbstractController
 
         return new JsonResponse($json, 200, [], true);
     }
+
 
 
     #[Route('/editar/{id}', name: 'editar_libro', methods: ['PUT'])]
