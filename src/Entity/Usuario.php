@@ -97,6 +97,8 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRol(): ?string
     {
         return $this->rol;
+
+
     }
 
 

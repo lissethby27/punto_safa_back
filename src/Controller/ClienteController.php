@@ -55,7 +55,7 @@ final class ClienteController extends AbstractController
         }
 
         if ($usuario) {
-            $rol = $usuario->getRoles();
+            $rol = $usuario->getRol();
         } else {
             return $this->json(['error' => 'El cliente no tiene usuario asociado'], 404);
         }

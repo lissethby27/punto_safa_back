@@ -124,7 +124,7 @@ class Cliente
         return $this->usuario;
     }
 
-    public function setUsuario(Usuario $usuario): self
+    public function setUsuario(Usuario $usuario): static
     {
         $this->usuario = $usuario;
         return $this;
