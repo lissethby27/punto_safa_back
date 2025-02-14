@@ -48,7 +48,7 @@ security:
         - {path: ^/libro/guardar, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
         - {path: ^/libro/editar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
         - {path: ^/libro/eliminar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
-        - { path: ^/resena/nueva, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
+        - { path: ^/resena/nueva, roles: ROLE_CLIENTE } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
         - { path: ^/resena/listar, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
         - { path: ^/resena/mostrar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
         - {path: ^/libro/ordenar, roles: PUBLIC_ACCESS}
