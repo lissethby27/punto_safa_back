@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\DTO\ClienteDTO;
 use App\Entity\Cliente;
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
