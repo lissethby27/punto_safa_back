@@ -102,13 +102,14 @@ final class UsuarioController extends AbstractController
         }
 
         // Actualiza los datos del usuario
-        $usuario->setNick($json_usuario['nick']);
+        //$usuario->setNick($json_usuario['nick']);
         $usuario->setContrasena($json_usuario['contrasena']);
-        $usuario->setRol($json_usuario['rol']);
+        //$usuario->setRol($json_usuario['rol']);
         $usuario->setEmail($json_usuario['email']);
 
         // Guarda los cambios en la base de datos
         $entityManager->flush();
+
 
         return $this->json(['mensaje' => 'Datos actualizados correctamente']);
     }
