@@ -48,4 +48,16 @@ class ClienteRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    public function findByUserEmail(string $email): ?Cliente
+    {
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.usuario', 'u')  // Relacionamos con la entidad Usuario
+            ->andWhere('u.email = :email')
+            ->setParameter('email', $email)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+
+
 }
