@@ -16,6 +16,17 @@ class PedidoRepository extends ServiceEntityRepository
         parent::__construct($registry, Pedido::class);
     }
 
+
+    //Alba para probar reseñas
+    public function findByUsuario(int $usuarioId): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.usuario = :usuarioId')
+            ->setParameter('usuarioId', $usuarioId)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Pedido[] Returns an array of Pedido objects
     //     */
