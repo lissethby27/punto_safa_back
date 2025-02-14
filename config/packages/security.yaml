@@ -57,7 +57,7 @@ security:
         - { path: ^/resena/actualizar/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/cliente,     roles: PUBLIC_ACCESS }
         - { path: ^/cliente/guardar, roles: PUBLIC_ACCESS }
-        - { path: ^/cliente/editar, roles: PUBLIC_ACCESS }   #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - { path: ^/cliente/editar/\d+,, roles: PUBLIC_ACCESS }   #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
         - { path: ^/resena/resenas/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/media-calificacion/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/top-libros, roles: PUBLIC_ACCESS }

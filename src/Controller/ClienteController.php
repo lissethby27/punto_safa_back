@@ -91,29 +91,48 @@ final class ClienteController extends AbstractController
     }
 
     #[Route('/editar/{id}', name: 'editar', methods: ['PUT'])]
-    public function editar(int $id, Request $request, EntityManagerInterface $entityManager, ClienteRepository $clienteRepository): JsonResponse
-    {
-        $json_cliente = json_decode($request->getContent(), true);
+    public function editar(
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ClienteRepository $clienteRepository
+    ): JsonResponse {
+        try {
+            // Obtener datos del request
+            $json_cliente = json_decode($request->getContent(), true);
 
-        $cliente = $clienteRepository->find($id);
+            if (!$json_cliente) {
+                return $this->json(['error' => 'El cuerpo de la solicitud no es un JSON válido'], 400);
+            }
 
-        if (!$cliente) {
-            return $this->json(['error' => 'Clientes no encontrado'], 404);
+            // Buscar el cliente por ID
+            $cliente = $clienteRepository->find($id);
+
+            if (!$cliente) {
+                return $this->json(['error' => 'Cliente no encontrado'], 404);
+            }
+
+            // Verificar que los datos obligatorios existen
+            if (!isset($json_cliente['foto'], $json_cliente['direccion'], $json_cliente['telefono'])) {
+                return $this->json(['error' => 'Faltan datos obligatorios'], 400);
+            }
+
+            // Actualizar datos del cliente
+            $cliente->setFoto($json_cliente['foto']);
+            $cliente->setDireccion($json_cliente['direccion']);
+            $cliente->setTelefono($json_cliente['telefono']);
+
+            // Persistir y guardar cambios
+            $entityManager->persist($cliente);
+            $entityManager->flush();
+
+            return $this->json(['mensaje' => 'Datos actualizados correctamente'], 200);
+
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Error al guardar: ' . $e->getMessage()], 500);
         }
-
-        if (!isset($json_cliente['foto'], $json_cliente['direccion'], $json_cliente['telefono'])) {
-            return $this->json(['error' => 'Faltan datos obligatorios'], 400);
-        }
-
-
-        $cliente->setFoto($json_cliente['foto']);
-        $cliente->setDireccion($json_cliente['direccion']);
-        $cliente->setTelefono($json_cliente['telefono']);
-
-        $entityManager->flush();
-
-        return $this->json(['mensaje' => 'Datos actualizados correctamente']);
     }
+
 
     #[Route('/buscar/{nombre}', name: 'buscar_por_nombre', methods: ['GET'])]
     public function buscarPorNombre(string $nombre, ClienteRepository $clienteRepository): JsonResponse
