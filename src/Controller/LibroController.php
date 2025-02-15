@@ -210,7 +210,23 @@ class LibroController extends AbstractController
                 break;
             default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
         }
-        return $this->json($listaLibros, Response::HTTP_OK, []);
+        $jsonLibros = $this->serializer->serialize($listaLibros, 'json', [
+            AbstractNormalizer::CALLBACKS => [
+                'categoria' => fn($innerObject) => $innerObject ? $innerObject->getNombre() : null,
+                'autor' => fn($innerObject) => $innerObject ? [
+
+                    'nombre' => $innerObject->getNombre(),
+
+                    'apellidos' => $innerObject->getApellidos(),
+
+                ] : null,
+                'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null,
+                'lineaPedidos' => fn($innerObject) => null,
+            ],
+            'circular_reference_handler' => fn($object) => $object->getId(),
+        ]);
+
+        return new JsonResponse($jsonLibros, 200, [], true);
 
     }
 
