@@ -39,7 +39,7 @@ composer.lock
 /config/secrets/*
 
 # Archivos de claves privadas
-/config/jwt/*.pem
+#/config/jwt/*.pem
 
 # Archivos de caché y logs
 
