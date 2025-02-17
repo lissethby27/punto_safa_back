@@ -99,6 +99,7 @@ final class UsuarioController extends AbstractController
         return new JsonResponse(['mensaje' => 'Usuario registrado. Revisa tu email para confirmar la cuenta.'], 201);
     }
 
+
     #[Route('/verificar-email/{token}', name: 'verificar_email', methods: ['GET'])]
     public function verificarEmail(
         string $token,
@@ -166,7 +167,7 @@ final class UsuarioController extends AbstractController
             $errores[] = 'URL de foto no válida.';
         }
 
-        if (!preg_match('/^[0-9]{9}$/', $body['telefono'])) {
+        if (!preg_match('^[67][0-9]{8}$', $body['telefono'])) {
             $errores[] = 'Teléfono no válido (deben ser 9 dígitos numéricos).';
         }
 
