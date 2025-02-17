@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 
 
 #[Route('/api')]
@@ -26,10 +28,26 @@ final class UsuarioController extends AbstractController
 
 
     #[Route('/registro', name: 'app_usuario', methods: ['POST'])]
-    public function registro(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function registro(
+        Request $request,
+        UserPasswordHasherInterface $userPasswordHasher,
+        EntityManagerInterface $entityManager,
+        MailerInterface $mailer,
+        UrlGeneratorInterface $urlGenerator,
+        JWTTokenManagerInterface $jwtManager
+    ): JsonResponse {
         $body = json_decode($request->getContent(), true);
 
+        // Verificar si el usuario ya existe
+        if ($entityManager->getRepository(Usuario::class)->findOneBy(['email' => $body['email']])) {
+            return new JsonResponse(['error' => 'El email ya está registrado'], 400);
+        }
+
+        // Validaciones manuales
+        $errores = $this->validarDatos($body);
+        if (!empty($errores)) {
+            return new JsonResponse(['error' => $errores], 400);
+        }
 
         // Crear usuario
         $nuevo_usuario = new Usuario();
@@ -37,9 +55,10 @@ final class UsuarioController extends AbstractController
         $nuevo_usuario->setEmail($body['email']);
         $nuevo_usuario->setContrasena($userPasswordHasher->hashPassword($nuevo_usuario, $body['contrasena']));
         $nuevo_usuario->setRol("cliente");
+        $nuevo_usuario->setVerificado(false);
 
         $entityManager->persist($nuevo_usuario);
-        $entityManager->flush(); // Guardar usuario primero
+        $entityManager->flush();
 
         // Crear cliente asociado
         $nuevo_cliente = new Cliente();
@@ -49,23 +68,118 @@ final class UsuarioController extends AbstractController
         $nuevo_cliente->setFoto($body['foto']);
         $nuevo_cliente->setDireccion($body['direccion']);
         $nuevo_cliente->setTelefono($body['telefono']);
-        $nuevo_cliente->setUsuario($nuevo_usuario); // Asignar el usuario
-
-        // Si necesitas acceder a la propiedad 'rol' del usuario, inicializa el objeto 'Usuario'
-        $usuario = $nuevo_cliente->getUsuario();
-        if ($usuario instanceof \Doctrine\ORM\Proxy\Proxy) {
-            $entityManager->initializeObject($usuario);
-        }
-
-        // Ahora puedes acceder a la propiedad 'rol' sin problemas
-        $rol = $usuario->getRol();
+        $nuevo_cliente->setUsuario($nuevo_usuario);
 
         $entityManager->persist($nuevo_cliente);
-        $entityManager->flush(); // Guardar cliente
+        $entityManager->flush();
 
-        return new JsonResponse(['mensaje' => 'Usuario y Cliente registrados correctamente'], 201);
+        // Generar token de verificación
+        $tokenVerificacion = $jwtManager->createFromPayload($nuevo_usuario, [
+            'verificacion' => true,
+            'exp' => time() + 3600 // Expira en 1 hora
+        ]);
+
+        // Generar enlace de verificación
+        $verificacionUrl = $urlGenerator->generate(
+            'verificar_email',
+            ['token' => $tokenVerificacion],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
+        // Enviar email de verificación
+        $email = (new Email())
+            ->from('noreply@tuapp.com')
+            ->to($body['email'])
+            ->subject('Confirma tu email')
+            ->html("<p>Gracias por registrarte. Verifica tu cuenta aquí:</p>
+                <p><a href='$verificacionUrl'>$verificacionUrl</a></p>");
+
+        $mailer->send($email);
+
+        return new JsonResponse(['mensaje' => 'Usuario registrado. Revisa tu email para confirmar la cuenta.'], 201);
     }
 
+    #[Route('/verificar-email/{token}', name: 'verificar_email', methods: ['GET'])]
+    public function verificarEmail(
+        string $token,
+        Request $request,
+        UtilidadesToken $utilidadesToken,
+        EntityManagerInterface $entityManager,
+        JWTTokenManagerInterface $jwtManager
+    ): JsonResponse {
+        try {
+            $decoded = $utilidadesToken->extraerTokenData($request, $jwtManager);
+
+            if (!isset($decoded['email']) || !isset($decoded['verificacion'])) {
+                return new JsonResponse(['error' => 'Token inválido'], 400);
+            }
+
+            $usuario = $entityManager->getRepository(Usuario::class)->findOneBy(['email' => $decoded['email']]);
+
+            if (!$usuario) {
+                return new JsonResponse(['error' => 'Usuario no encontrado'], 400);
+            }
+
+            if ($usuario->getVerificado()) {
+                return new JsonResponse(['mensaje' => 'El email ya ha sido verificado.'], 200);
+            }
+
+            $usuario->setVerificado(true);
+            $entityManager->flush();
+
+            return new JsonResponse(['mensaje' => 'Email verificado con éxito. Ahora puedes iniciar sesión.'], 200);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Token inválido o expirado'], 400);
+        }
+    }
+
+
+    /**
+     * Función para validar los datos de entrada.
+     */
+    private function validarDatos(array $body): array
+    {
+        $errores = [];
+
+        if (!isset($body['nick'], $body['email'], $body['contrasena'], $body['repetircontrasena'],
+            $body['nombre'], $body['apellidos'], $body['dni'], $body['foto'], $body['direccion'], $body['telefono'])) {
+            $errores[] = 'Faltan datos obligatorios.';
+        }
+
+        if (!filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
+            $errores[] = 'Email no válido.';
+        }
+
+        if (!preg_match('/^[a-zA-ZÀ-ÿ ]{3,}$/', $body['nombre'])) {
+            $errores[] = 'Nombre no válido (mínimo 3 caracteres y solo letras).';
+        }
+
+        if (!preg_match('/^[a-zA-ZÀ-ÿ ]{3,}$/', $body['apellidos'])) {
+            $errores[] = 'Apellidos no válidos (mínimo 3 caracteres y solo letras).';
+        }
+
+        if (!preg_match('/^[0-9]{8}[A-Z]$/', $body['dni'])) {
+            $errores[] = 'DNI no válido (debe tener 8 números y una letra mayúscula).';
+        }
+
+        if (!preg_match('/^(https?:\/\/)?([\w.-]+)\.([a-z]{2,6}\.?)(\/.*)?$/', $body['foto'])) {
+            $errores[] = 'URL de foto no válida.';
+        }
+
+        if (!preg_match('/^[0-9]{9}$/', $body['telefono'])) {
+            $errores[] = 'Teléfono no válido (deben ser 9 dígitos numéricos).';
+        }
+
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/', $body['contrasena'])) {
+            $errores[] = 'La contraseña debe tener al menos 6 caracteres, incluir una mayúscula, una minúscula y un número.';
+        }
+
+        if ($body['contrasena'] !== $body['repetircontrasena']) {
+            $errores[] = 'Las contraseñas no coinciden.';
+        }
+
+        return $errores;
+    }
 
 
     #[Route('usuario/all', name: 'all', methods: ['GET'])]
