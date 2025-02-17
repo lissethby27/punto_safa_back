@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Cliente;
+use App\Entity\Libro;
+use App\Entity\LineaPedido;
 use App\Entity\Pedido;
 use App\Repository\PedidoRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,14 +39,43 @@ final class PedidoController extends AbstractController
         $json_pedido = json_decode($request->getContent(), true);
 
         $pedido = new Pedido();
-        $fecha = new \DateTime($json_pedido['fecha']);
-        $pedido->setFecha($fecha);
+//        $fecha = new \DateTime($json_pedido['fecha']);
+//        $pedido->setFecha($fecha);
+        $pedido->setFecha(new \DateTime());
         $clienteId = $json_pedido['cliente']; // Assuming 'cliente' contains the ID of the existing client
         $cliente = $entityManager->getRepository(Cliente::class)->find($clienteId);
         $pedido->setCliente($cliente);
         $pedido->setTotal($json_pedido['total']);
-        $pedido->setEstado($json_pedido['estado']);
+        $pedido->setEstado("procesado");
         $pedido->SetDireccionEntrega($json_pedido['direccion']);
+
+        $cliente = $entityManager->getRepository(Cliente::class)->find($json_pedido['cliente']);
+        if (!isset($json_pedido['cliente'])) {
+            return new JsonResponse(['error' => 'Cliente ID is missing in the request'], 400);
+        }
+
+        if (!$cliente) {
+            return new JsonResponse(['error' => 'Cliente not found'], 404);
+        }
+        $pedido->setCliente($cliente);
+
+        foreach ($json_pedido['lineaPedidos'] as $lineaData) {
+            $libro = $entityManager->getRepository(Libro::class)->find($lineaData['libro']);
+            if (!$libro) {
+                return new JsonResponse(['error' => 'Libro not found'], 404);
+            }
+
+            $lineaPedido = new LineaPedido();
+            $lineaPedido->setCantidad($lineaData['cantidad']);
+            $lineaPedido->setPrecioUnitario($lineaData['precio_unitario']);
+            $lineaPedido->setLibro($libro);
+            $lineaPedido->setIdPedido($pedido);
+
+            $entityManager->persist($lineaPedido);
+        }
+
+
+
         $entityManager->persist($pedido);
         $entityManager->flush();
 
