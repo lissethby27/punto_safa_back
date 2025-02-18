@@ -24,12 +24,14 @@ final class UsuarioController extends AbstractController
     private EntityManagerInterface $entityManager;
 
 
-    public function __construct(UsuarioRepository $usuarioRepository)
+    public function __construct(UsuarioRepository $usuarioRepository, EntityManagerInterface $entityManager)
     {
+        dump("Constructor ejecutado");
         $this->usuarioRepository = $usuarioRepository;
         $this->entityManager = $entityManager;
-
+        die;
     }
+
 
     #[Route('/registro', name: 'app_usuario', methods: ['POST'])]
     public function registro(
@@ -50,9 +52,26 @@ final class UsuarioController extends AbstractController
         if ($this->entityManager->getRepository(Usuario::class)->findOneBy(['email' => $body['email']])) {
             return new JsonResponse(['error' => 'El email ya está registrado'], 400);
         }
+
+        // Verificar que dni no esté registrado
+        if ($this->entityManager->getRepository(Cliente::class)->findOneBy(['dni' => $body['dni']])) {
+            return new JsonResponse(['error' => 'El DNI ya está registrado'], 400);
+        }
+
+        //Verificar que el teléfono no esté registrado
+        if ($this->entityManager->getRepository(Cliente::class)->findOneBy(['telefono' => $body['telefono']])) {
+            return new JsonResponse(['error' => 'El teléfono ya está registrado'], 400);
+        }
+
         if ($this->entityManager->getRepository(Usuario::class)->findOneBy(['nick' => $body['nick']])) {
             return new JsonResponse(['error' => 'El nick ya está registrado'], 400);
         }
+
+
+        if (!isset($this->entityManager)) {
+            return new JsonResponse(['error' => 'EntityManager no está disponible'], 500);
+        }
+
 
         // Crear usuario
         $nuevo_usuario = new Usuario();
@@ -67,6 +86,7 @@ final class UsuarioController extends AbstractController
 
         return new JsonResponse(['mensaje' => 'Usuario registrado. Revisa tu email para obtener el código de verificación.'], 201);
     }
+
 
     /**
      * Función para validar los datos de entrada.
@@ -83,8 +103,12 @@ final class UsuarioController extends AbstractController
             }
         }
 
-        if (!filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
-            $errores[] = 'Email no válido.';
+        if (!preg_match('/^[a-zA-Z0-9_]{3,}$/', $body['nick'])) {
+            $errores[] = 'Nick no válido (mínimo 3 caracteres y solo letras y números).';
+        }
+
+        if (!filter_var($body['email'], FILTER_VALIDATE_EMAIL) || !preg_match('/\.(com|es)$/', $body['email'])) {
+            $errores[] = 'Email no válido. Debe terminar en .com o .es.';
         }
 
         if (!preg_match('/^[a-zA-ZÀ-ÿ ]{3,}$/', $body['nombre'])) {
@@ -115,7 +139,9 @@ final class UsuarioController extends AbstractController
             $errores[] = 'Las contraseñas no coinciden.';
         }
 
-        return $errores;
+        $errores = $this->validarDatos($body);
+        dump($errores); die;
+
     }
 
 
