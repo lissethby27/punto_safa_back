@@ -9,10 +9,9 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ApiController extends AbstractController
 {
-    #[Route('/api/saludo', name: 'api_saludo', methods: ['GET'])]
-    public function saludo(): JsonResponse
+    #[Route('/api/', methods: ['OPTIONS'])]
+    public function options(): Response
     {
-        return $this->json(['mensaje' => '¡Hola Mundo!']);
-
+        return new Response('', Response::HTTP_NO_CONTENT);
     }
 }
