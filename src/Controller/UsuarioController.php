@@ -30,6 +30,35 @@ final class UsuarioController extends AbstractController
     {
         $body = json_decode($request->getContent(), true);
 
+        // Validar que los campos obligatorios estén presentes
+        if (!isset($body['nick'], $body['email'], $body['contrasena'], $body['nombre'], $body['apellidos'], $body['dni'], $body['foto'], $body['direccion'], $body['telefono'])) {
+            return $this->json(['error' => 'Faltan datos obligatorios'], 400);
+        }
+
+        // Validar que los campos no estén vacíos
+        foreach ($body as $key => $value) {
+            if (empty($value)) {
+                return $this->json(['error' => "El campo '$key' no puede estar vacío"], 400);
+            }
+        }
+
+        // Validar la contraseña
+        $password = $body['contrasena'];
+        if (strlen($password) < 8 || strlen($password) > 32) {
+            return $this->json(['error' => 'La contraseña debe tener entre 8 y 32 caracteres'], 400);
+        }
+        if (!preg_match('/[A-Z]/', $password)) {
+            return $this->json(['error' => 'La contraseña debe contener al menos una letra mayúscula'], 400);
+        }
+        if (!preg_match('/[a-z]/', $password)) {
+            return $this->json(['error' => 'La contraseña debe contener al menos una letra minúscula'], 400);
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            return $this->json(['error' => 'La contraseña debe contener al menos un número'], 400);
+        }
+        if (!preg_match('/[\W_]/', $password)) { // Caracter especial
+            return $this->json(['error' => 'La contraseña debe contener al menos un carácter especial'], 400);
+        }
 
         // Crear usuario
         $nuevo_usuario = new Usuario();
@@ -51,21 +80,11 @@ final class UsuarioController extends AbstractController
         $nuevo_cliente->setTelefono($body['telefono']);
         $nuevo_cliente->setUsuario($nuevo_usuario); // Asignar el usuario
 
-        // Si necesitas acceder a la propiedad 'rol' del usuario, inicializa el objeto 'Usuario'
-        $usuario = $nuevo_cliente->getUsuario();
-        if ($usuario instanceof \Doctrine\ORM\Proxy\Proxy) {
-            $entityManager->initializeObject($usuario);
-        }
-
-        // Ahora puedes acceder a la propiedad 'rol' sin problemas
-        $rol = $usuario->getRol();
-
         $entityManager->persist($nuevo_cliente);
         $entityManager->flush(); // Guardar cliente
 
         return new JsonResponse(['mensaje' => 'Usuario y Cliente registrados correctamente'], 201);
     }
-
 
 
     #[Route('usuario/all', name: 'all', methods: ['GET'])]
