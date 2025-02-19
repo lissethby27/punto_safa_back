@@ -71,10 +71,40 @@ final class ClienteController extends AbstractController
     {
         $json_cliente = json_decode($request->getContent(), true);
 
+        // Validar que los campos obligatorios estén presentes
         if (!isset($json_cliente['nombre'], $json_cliente['apellidos'], $json_cliente['DNI'], $json_cliente['foto'], $json_cliente['direccion'], $json_cliente['telefono'])) {
             return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
+        // Validar que los campos no estén vacíos
+        foreach ($json_cliente as $key => $value) {
+            if (empty($value)) {
+                return $this->json(['error' => "El campo '$key' no puede estar vacío"], 400);
+            }
+        }
+
+        // Validar el formato del DNI
+        if (!preg_match('/^[0-9]{8}[A-Za-z]$/', $json_cliente['DNI'])) {
+            return $this->json(['error' => 'El formato del DNI no es válido'], 400);
+        }
+
+        // Validar el formato del teléfono
+        if (!preg_match('/^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,3}[-.\s]?\d{1,4}$/', $json_cliente['telefono'])) {
+            return $this->json(['error' => 'El formato del teléfono no es válido'], 400);
+        }
+
+        // Validar que la foto sea una URL válida
+        if (!filter_var($json_cliente['foto'], FILTER_VALIDATE_URL)) {
+            return $this->json(['error' => 'La URL de la foto no es válida'], 400);
+        }
+
+        // Buscar el usuario correspondiente al cliente (si ya se creó previamente)
+        $usuario = $entityManager->getRepository(Usuario::class)->findOneBy(['email' => $json_cliente['email']]);
+        if (!$usuario) {
+            return $this->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        // Crear el cliente
         $cliente = new Cliente();
         $cliente->setNombre($json_cliente['nombre']);
         $cliente->setApellidos($json_cliente['apellidos']);
@@ -82,12 +112,16 @@ final class ClienteController extends AbstractController
         $cliente->setFoto($json_cliente['foto']);
         $cliente->setDireccion($json_cliente['direccion']);
         $cliente->setTelefono($json_cliente['telefono']);
+        $cliente->setUsuario($usuario); // Asignar el usuario existente
 
+        // Persistir y guardar el cliente
         $entityManager->persist($cliente);
         $entityManager->flush();
 
-        return $this->json(['mensaje' => 'Datos guardados correctamente'], 201);
+        return $this->json(['mensaje' => 'Datos del cliente guardados correctamente'], 201);
     }
+
+
 
     #[Route('/editar/{id}', name: 'editar', methods: ['PUT'])]
     public function editar(

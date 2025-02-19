@@ -35,29 +35,28 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api,       roles: PUBLIC_ACCESS }
-        - { path: ^/api/*, roles: PUBLIC_ACCESS }
-        - { path: ^/usuario,       roles: PUBLIC_ACCESS }
-        - { path: ^/api/cliente/auth/user, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/autor,     roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: PUBLIC_ACCESS }
+        - { path: ^/usuario, roles: PUBLIC_ACCESS }
+        - { path: ^/api/cliente/auth/user, roles: [ ROLE_CLIENTE, ROLE_ADMIN ] }
+        - { path: ^/autor, roles: PUBLIC_ACCESS }
         - { path: ^/autor/\d+, roles: PUBLIC_ACCESS }
-        - { path: ^/autor/guardar, roles: PUBLIC_ACCESS }
-        - { path: ^/autor/editar, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
-        - { path: ^/categoria,     roles: PUBLIC_ACCESS }
-        - {path: ^/libro/all, roles: PUBLIC_ACCESS}
-        - {path: ^/libro/\d+, roles: PUBLIC_ACCESS}
-        - {path: ^/libro/guardar, roles: PUBLIC_ACCESS}  #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
-        - {path: ^/libro/editar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
-        - {path: ^/libro/eliminar/\d+, roles: PUBLIC_ACCESS} #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
-        - { path: ^/resena/nueva, roles: ROLE_CLIENTE } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
-        - { path: ^/resena/listar, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
-        - { path: ^/resena/mostrar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
-        - {path: ^/libro/ordenar, roles: PUBLIC_ACCESS}
-        - { path: ^/resena/eliminar/\d+, roles: PUBLIC_ACCESS } #Tener en cuenta que esto solo puede acceder el cliente, por tanto se cambiaría a CLIENTE
-        - { path: ^/resena/actualizar/\d+, roles: PUBLIC_ACCESS }
-        - { path: ^/cliente,     roles: PUBLIC_ACCESS }
+        - { path: ^/autor/guardar, roles: ROLE_ADMIN }
+        - { path: ^/autor/editar, roles: ROLE_ADMIN }
+        - { path: ^/categoria, roles: PUBLIC_ACCESS }
+        - { path: ^/libro/all, roles: PUBLIC_ACCESS }
+        - { path: ^/libro/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/libro/guardar, roles: ROLE_ADMIN }
+        - { path: ^/libro/editar/\d+, roles: ROLE_ADMIN }
+        - { path: ^/libro/eliminar/\d+, roles: ROLE_ADMIN }
+        - { path: ^/resena/nueva, roles: ROLE_CLIENTE }
+        - { path: ^/resena/listar, roles: ROLE_CLIENTE }
+        - { path: ^/resena/mostrar/\d+, roles: ROLE_CLIENTE }
+        - { path: ^/libro/ordenar, roles: PUBLIC_ACCESS }
+        - { path: ^/resena/eliminar/\d+, roles: ROLE_CLIENTE }
+        - { path: ^/resena/actualizar/\d+, roles: ROLE_CLIENTE }
+        - { path: ^/cliente, roles: PUBLIC_ACCESS }
         - { path: ^/cliente/guardar, roles: PUBLIC_ACCESS }
-        - { path: ^/cliente/editar/\d+,, roles: PUBLIC_ACCESS }   #Tener en cuenta que esto solo puede acceder el admin, por tanto se cambiaría a ROLE_ADMIN
+        - { path: ^/cliente/editar/\d+, roles: ROLE_ADMIN }
         - { path: ^/resena/resenas/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/media-calificacion/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/top-libros, roles: PUBLIC_ACCESS }

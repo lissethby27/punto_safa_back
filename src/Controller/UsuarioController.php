@@ -12,66 +12,53 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 
 #[Route('/api')]
 final class UsuarioController extends AbstractController
 {
     private UsuarioRepository $usuarioRepository;
-    private EntityManagerInterface $entityManager;
 
-
-    public function __construct(UsuarioRepository $usuarioRepository, EntityManagerInterface $entityManager)
+    public function __construct(UsuarioRepository $usuarioRepository)
     {
-        dump("Constructor ejecutado");
         $this->usuarioRepository = $usuarioRepository;
-        $this->entityManager = $entityManager;
-        die;
     }
 
 
     #[Route('/registro', name: 'app_usuario', methods: ['POST'])]
-    public function registro(
-        Request $request,
-        UserPasswordHasherInterface $userPasswordHasher,
-        UrlGeneratorInterface $urlGenerator,
-        JWTTokenManagerInterface $jwtManager
-    ): JsonResponse {
+    public function registro(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
+    {
         $body = json_decode($request->getContent(), true);
 
-        // Validar datos antes de continuar
-        $errores = $this->validarDatos($body);
-        if (!empty($errores)) {
-            return new JsonResponse(['error' => $errores], 400);
+        // Validar que los campos obligatorios estén presentes
+        if (!isset($body['nick'], $body['email'], $body['contrasena'], $body['nombre'], $body['apellidos'], $body['dni'], $body['foto'], $body['direccion'], $body['telefono'])) {
+            return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
-        // Verificar si el email o el nick ya existen
-        if ($this->entityManager->getRepository(Usuario::class)->findOneBy(['email' => $body['email']])) {
-            return new JsonResponse(['error' => 'El email ya está registrado'], 400);
+        // Validar que los campos no estén vacíos
+        foreach ($body as $key => $value) {
+            if (empty($value)) {
+                return $this->json(['error' => "El campo '$key' no puede estar vacío"], 400);
+            }
         }
 
-        // Verificar que dni no esté registrado
-        if ($this->entityManager->getRepository(Cliente::class)->findOneBy(['dni' => $body['dni']])) {
-            return new JsonResponse(['error' => 'El DNI ya está registrado'], 400);
+        // Validar la contraseña
+        $password = $body['contrasena'];
+        if (strlen($password) < 8 || strlen($password) > 32) {
+            return $this->json(['error' => 'La contraseña debe tener entre 8 y 32 caracteres'], 400);
         }
-
-        //Verificar que el teléfono no esté registrado
-        if ($this->entityManager->getRepository(Cliente::class)->findOneBy(['telefono' => $body['telefono']])) {
-            return new JsonResponse(['error' => 'El teléfono ya está registrado'], 400);
+        if (!preg_match('/[A-Z]/', $password)) {
+            return $this->json(['error' => 'La contraseña debe contener al menos una letra mayúscula'], 400);
         }
-
-        if ($this->entityManager->getRepository(Usuario::class)->findOneBy(['nick' => $body['nick']])) {
-            return new JsonResponse(['error' => 'El nick ya está registrado'], 400);
+        if (!preg_match('/[a-z]/', $password)) {
+            return $this->json(['error' => 'La contraseña debe contener al menos una letra minúscula'], 400);
         }
-
-
-        if (!isset($this->entityManager)) {
-            return new JsonResponse(['error' => 'EntityManager no está disponible'], 500);
+        if (!preg_match('/[0-9]/', $password)) {
+            return $this->json(['error' => 'La contraseña debe contener al menos un número'], 400);
         }
-
+        if (!preg_match('/[\W_]/', $password)) { // Caracter especial
+            return $this->json(['error' => 'La contraseña debe contener al menos un carácter especial'], 400);
+        }
 
         // Crear usuario
         $nuevo_usuario = new Usuario();
@@ -79,71 +66,25 @@ final class UsuarioController extends AbstractController
         $nuevo_usuario->setEmail($body['email']);
         $nuevo_usuario->setContrasena($userPasswordHasher->hashPassword($nuevo_usuario, $body['contrasena']));
         $nuevo_usuario->setRol("cliente");
-        $nuevo_usuario->setVerificado(false);
 
-        $this->entityManager->persist($nuevo_usuario);
-        $this->entityManager->flush();
+        $entityManager->persist($nuevo_usuario);
+        $entityManager->flush(); // Guardar usuario primero
 
-        return new JsonResponse(['mensaje' => 'Usuario registrado. Revisa tu email para obtener el código de verificación.'], 201);
+        // Crear cliente asociado
+        $nuevo_cliente = new Cliente();
+        $nuevo_cliente->setNombre($body['nombre']);
+        $nuevo_cliente->setApellidos($body['apellidos']);
+        $nuevo_cliente->setDNI($body['dni']);
+        $nuevo_cliente->setFoto($body['foto']);
+        $nuevo_cliente->setDireccion($body['direccion']);
+        $nuevo_cliente->setTelefono($body['telefono']);
+        $nuevo_cliente->setUsuario($nuevo_usuario); // Asignar el usuario
+
+        $entityManager->persist($nuevo_cliente);
+        $entityManager->flush(); // Guardar cliente
+
+        return new JsonResponse(['mensaje' => 'Usuario y Cliente registrados correctamente'], 201);
     }
-
-
-    /**
-     * Función para validar los datos de entrada.
-     */
-    private function validarDatos(array $body): array
-    {
-        $errores = [];
-
-        // Verificar si existen los campos requeridos
-        $campos_requeridos = ['nick', 'email', 'contrasena', 'repetircontrasena', 'nombre', 'apellidos', 'dni', 'foto', 'direccion', 'telefono'];
-        foreach ($campos_requeridos as $campo) {
-            if (!isset($body[$campo])) {
-                $errores[] = "Falta el campo obligatorio: $campo.";
-            }
-        }
-
-        if (!preg_match('/^[a-zA-Z0-9_]{3,}$/', $body['nick'])) {
-            $errores[] = 'Nick no válido (mínimo 3 caracteres y solo letras y números).';
-        }
-
-        if (!filter_var($body['email'], FILTER_VALIDATE_EMAIL) || !preg_match('/\.(com|es)$/', $body['email'])) {
-            $errores[] = 'Email no válido. Debe terminar en .com o .es.';
-        }
-
-        if (!preg_match('/^[a-zA-ZÀ-ÿ ]{3,}$/', $body['nombre'])) {
-            $errores[] = 'Nombre no válido (mínimo 3 caracteres y solo letras).';
-        }
-
-        if (!preg_match('/^[a-zA-ZÀ-ÿ ]{3,}$/', $body['apellidos'])) {
-            $errores[] = 'Apellidos no válidos (mínimo 3 caracteres y solo letras).';
-        }
-
-        if (!preg_match('/^[0-9]{8}[A-Z]$/', $body['dni'])) {
-            $errores[] = 'DNI no válido (debe tener 8 números y una letra mayúscula).';
-        }
-
-        if (!filter_var($body['foto'], FILTER_VALIDATE_URL)) {
-            $errores[] = 'URL de foto no válida.';
-        }
-
-        if (!preg_match('/^[67][0-9]{8}$/', $body['telefono'])) {
-            $errores[] = 'Teléfono no válido (deben ser 9 dígitos numéricos).';
-        }
-
-        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/', $body['contrasena'])) {
-            $errores[] = 'La contraseña debe tener al menos 6 caracteres, incluir una mayúscula, una minúscula y un número.';
-        }
-
-        if ($body['contrasena'] !== $body['repetircontrasena']) {
-            $errores[] = 'Las contraseñas no coinciden.';
-        }
-
-        $errores = $this->validarDatos($body);
-        dump($errores); die;
-
-    }
-
 
 
     #[Route('usuario/all', name: 'all', methods: ['GET'])]
