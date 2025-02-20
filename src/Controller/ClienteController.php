@@ -88,10 +88,11 @@ final class ClienteController extends AbstractController
             return $this->json(['error' => 'El formato del DNI no es válido'], 400);
         }
 
-        // Validar el formato del teléfono
-        if (!preg_match('/^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,3}[-.\s]?\d{1,4}$/', $json_cliente['telefono'])) {
-            return $this->json(['error' => 'El formato del teléfono no es válido'], 400);
+        // Validar el formato del teléfono (solo 9 dígitos)
+        if (!preg_match('/^\d{9}$/', $json_cliente['telefono'])) {
+            return $this->json(['error' => 'El teléfono debe contener exactamente 9 dígitos'], 400);
         }
+
 
         // Validar que la foto sea una URL válida
         if (!filter_var($json_cliente['foto'], FILTER_VALIDATE_URL)) {
