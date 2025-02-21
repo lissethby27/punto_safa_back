@@ -13,8 +13,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Security\Core\Security;
+//use Symfony\Component\Security\Core\Security;
 
 
 
@@ -82,7 +83,42 @@ final class PedidoController extends AbstractController
         return $this->json(['mensaje' => 'Datos guardados correctamente']);
 
 
+    }
 
+    #[Route('/cliente/{id}', name: 'pedidos_by_cliente', methods: ['GET'])]
+    public function getPedidosByCliente(
+        int $id,
+        PedidoRepository $pedidoRepository,
+        SerializerInterface $serializer
+    ): JsonResponse {
+        // Fetch pedidos for the given cliente ID
+        $pedidos = $pedidoRepository->findBy(['cliente' => $id]);
+
+        if (!$pedidos) {
+            return new JsonResponse(['message' => 'No orders found for this client'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // Serialize pedidos along with related data (Cliente, LineaPedido, Libro)
+        $jsonPedidos = $serializer->serialize($pedidos, 'json', [
+            'groups' => ['pedido:read']
+        ]);
+
+        return new JsonResponse($jsonPedidos, JsonResponse::HTTP_OK, [], true);
+    }
+
+    #[Route('/cliente/{id}/estadisticas', name: 'estadisticas_pedidos_cliente', methods: ['GET'])]
+    public function getPedidoStatsByCliente(int $id, PedidoRepository $pedidoRepository)
+    {
+
+        $totalOrders = $pedidoRepository->totalPedidosByCliente($id);
+        $deliveredOrders = $pedidoRepository->deliveredPedidosByCliente($id);
+        $processedOrders = $pedidoRepository->processedPedidosByCliente($id);
+
+        return $this->json([
+            'totalOrders' => $totalOrders,
+            'deliveredOrders' => $deliveredOrders,
+            'processedOrders' => $processedOrders
+        ]);
 
     }
 
