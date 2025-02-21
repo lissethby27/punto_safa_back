@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\LibroRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 
 #[ORM\Entity(repositoryClass: LibroRepository::class)]
@@ -14,41 +15,53 @@ class Libro
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    #[Groups(['pedido:read'])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'titulo', type: Types::STRING, length: 255)]
+    #[Groups(['pedido:read'])]
     private ?string $titulo = null;
 
     #[ORM\Column(name: 'resumen', type: Types::STRING, length: 800, nullable: true)]
+    #[Groups(['pedido:read'])]
     private ?string $resumen = null;
 
     #[ORM\Column(name: 'anio_publicacion', type: Types::DATE_MUTABLE)]
+    #[Groups(['pedido:read'])]
     private ?\DateTimeInterface $anioPublicacion = null;
 
     #[ORM\Column(name: 'precio', type: Types::FLOAT)]
+    #[Groups(['pedido:read'])]
     private ?float $precio = null;
 
     #[ORM\Column(name: 'ISBN', type: Types::STRING, length: 20)]
+    #[Groups(['pedido:read'])]
     private ?string $ISBN = null;
 
     #[ORM\Column(name: 'editorial', type: Types::STRING, length: 200)]
+    #[Groups(['pedido:read'])]
     private ?string $editorial = null;
 
     #[ORM\Column(name: 'imagen', type: Types::STRING, length: 500)]
+    #[Groups(['pedido:read'])]
     private ?string $imagen = null;
 
     #[ORM\Column(name: 'idioma', type: Types::STRING, length: 100, nullable: true)]
+    #[Groups(['pedido:read'])]
     private ?string $idioma = null;
 
     #[ORM\Column(name: 'num_paginas', type: Types::INTEGER, nullable: true)]
+    #[Groups(['pedido:read'])]
     private ?int $numPaginas = null;
 
     #[ORM\ManyToOne(targetEntity: Autor::class, inversedBy: "libros")]
     #[ORM\JoinColumn(name: 'id_autor', nullable: false)]
+    #[Groups(['pedido:read'])]
     private ?Autor $autor = null;
 
     #[ORM\ManyToOne(targetEntity: Categoria::class, inversedBy: "libros")]
     #[ORM\JoinColumn(name: "id_categoria", referencedColumnName: "id", nullable: false)]
+    #[Groups(['pedido:read'])]
     private ?Categoria $categoria = null;
 
     public function getId(): ?int
