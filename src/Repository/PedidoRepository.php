@@ -27,6 +27,44 @@ class PedidoRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function totalPedidosByCliente($clienteId)
+    {
+        return $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->Where('p.cliente = :clienteId')
+            ->setParameter('clienteId', $clienteId)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+    }
+
+    public function deliveredPedidosByCliente($clienteId)
+    {
+        return $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->Where('p.cliente = :clienteId')
+            ->andWhere('p.estado = :estado')
+            ->setParameter('clienteId', $clienteId)
+            ->setParameter('estado', 'entregado')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+    }
+
+    public function processedPedidosByCliente($clienteId)
+    {
+
+        return $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->Where('p.cliente = :clienteId')
+            ->andWhere('p.estado = :estado')
+            ->setParameter('clienteId', $clienteId)
+            ->setParameter('estado', 'procesado')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+    }
+
     //    /**
     //     * @return Pedido[] Returns an array of Pedido objects
     //     */
