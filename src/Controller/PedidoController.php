@@ -48,7 +48,16 @@ final class PedidoController extends AbstractController
         $pedido->setCliente($cliente);
         $pedido->setTotal($json_pedido['total']);
         $pedido->setEstado("procesado");
-        $pedido->SetDireccionEntrega($json_pedido['direccion']);
+
+        $data = json_decode($request->getContent(), true);
+// Check if 'direccion_entrega' is set in the request
+        if (!isset($data['direccion_entrega'])) {
+            return new JsonResponse(['message' => 'Direccion not found'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $pedido->setDireccionEntrega($data['direccion_entrega']);
+        $codigo = 'PO' . (new \DateTime())->format('dmY');
+        $pedido->setCodigo($codigo);
 
         $cliente = $entityManager->getRepository(Cliente::class)->find($json_pedido['cliente']);
         if (!isset($json_pedido['cliente'])) {
@@ -110,14 +119,20 @@ final class PedidoController extends AbstractController
     public function getPedidoStatsByCliente(int $id, PedidoRepository $pedidoRepository)
     {
 
-        $totalOrders = $pedidoRepository->totalPedidosByCliente($id);
-        $deliveredOrders = $pedidoRepository->deliveredPedidosByCliente($id);
-        $processedOrders = $pedidoRepository->processedPedidosByCliente($id);
+        $totales =count($pedidoRepository->findBy(['cliente' => $id]));
+        $entregados =count($pedidoRepository->findBy([
+            'cliente' => $id,
+            'estado' => 'entregado'
+        ]));
+        $procesados =count($pedidoRepository->findBy([
+            'cliente' => $id,
+            'estado' => 'procesado'
+        ]));
 
         return $this->json([
-            'totalOrders' => $totalOrders,
-            'deliveredOrders' => $deliveredOrders,
-            'processedOrders' => $processedOrders
+            'totales' => $totales,
+            'entregados' => $entregados,
+            'procesados' => $procesados
         ]);
 
     }
