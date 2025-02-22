@@ -14,6 +14,15 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 class Pedido
 {
+    public function getCodigo(): ?string
+    {
+        return $this->codigo;
+    }
+
+    public function setCodigo(?string $codigo): void
+    {
+        $this->codigo = $codigo;
+    }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -35,6 +44,10 @@ class Pedido
     #[ORM\Column(name: "direccion_entrega", type: Types::STRING, length: 200)]
     #[Groups(['pedido:read'])]
     private ?string $direccion_entrega = null;
+
+    #[ORM\Column(name: "codigo", type: Types::STRING, length: 10)]
+    #[Groups(['pedido:read'])]
+    private ?string $codigo = null;
 
 
     #[ORM\OneToOne(targetEntity: Cliente::class,  cascade: ['persist', 'remove'])]
