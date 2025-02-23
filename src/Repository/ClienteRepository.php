@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Cliente;
+use App\Entity\Usuario;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -48,6 +49,15 @@ class ClienteRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+//    public function findOneByUsuario(Usuario $usuario): ?Cliente
+//    {
+//        return $this->createQueryBuilder('c')
+//            ->andWhere('c.usuario = :usuario')  // Asegúrate de que la propiedad 'usuario' exista en la entidad Cliente
+//            ->setParameter('usuario', $usuario)
+//            ->getQuery()
+//            ->getOneOrNullResult();
+//    }
 
 
 }

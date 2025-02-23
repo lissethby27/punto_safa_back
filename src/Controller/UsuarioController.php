@@ -12,6 +12,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Mailer\MailerInterface;
 
 
 #[Route('/api')]
@@ -26,7 +29,7 @@ final class UsuarioController extends AbstractController
 
 
     #[Route('/registro', name: 'app_usuario', methods: ['POST'])]
-    public function registro(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
+    public function registro(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager, MailerInterface $mailer): JsonResponse
     {
         $body = json_decode($request->getContent(), true);
 
@@ -60,17 +63,36 @@ final class UsuarioController extends AbstractController
             return $this->json(['error' => 'La contraseña debe contener al menos un carácter especial'], 400);
         }
 
-        // Crear usuario
+        // Validar si el correo electrónico ya está en uso
+        $usuarioExistente = $entityManager->getRepository(Usuario::class)->findOneBy(['email' => $body['email']]);
+        if ($usuarioExistente) {
+            return $this->json(['error' => 'El correo electrónico ya está registrado'], 400);
+        }
+
+        // Validar si el DNI ya está en uso
+        $dniExistente = $entityManager->getRepository(Cliente::class)->findOneBy(['DNI' => $body['dni']]);
+        if ($dniExistente) {
+            return $this->json(['error' => 'El DNI ya está registrado'], 400);
+        }
+
+        // Validar si el nick ya está en uso (insensible a mayúsculas/minúsculas)
+        $nickExistente = $entityManager->getRepository(Usuario::class)->findOneBy(['nick' => strtolower($body['nick'])]);  // Buscamos el nick sin importar las mayúsculas/minúsculas
+        if ($nickExistente) {
+            return $this->json(['error' => 'El nick ya está registrado'], 400);
+        }
+
+        // Crear el nuevo usuario
         $nuevo_usuario = new Usuario();
-        $nuevo_usuario->setNick($body['nick']);
+        $nuevo_usuario->setNick(strtolower($body['nick']));  // Guardamos el nick en minúsculas
         $nuevo_usuario->setEmail($body['email']);
         $nuevo_usuario->setContrasena($userPasswordHasher->hashPassword($nuevo_usuario, $body['contrasena']));
         $nuevo_usuario->setRol("cliente");
 
-        $entityManager->persist($nuevo_usuario);
-        $entityManager->flush(); // Guardar usuario primero
+        // Crear un token de activación
+        $token = bin2hex(random_bytes(32));  // Crear un token único
+        $nuevo_usuario->setActivationToken($token);  // Suponiendo que hayas agregado un campo 'activationToken' en la entidad Usuario
 
-        // Crear cliente asociado
+        // Crear el cliente asociado al usuario
         $nuevo_cliente = new Cliente();
         $nuevo_cliente->setNombre($body['nombre']);
         $nuevo_cliente->setApellidos($body['apellidos']);
@@ -78,12 +100,56 @@ final class UsuarioController extends AbstractController
         $nuevo_cliente->setFoto($body['foto']);
         $nuevo_cliente->setDireccion($body['direccion']);
         $nuevo_cliente->setTelefono($body['telefono']);
-        $nuevo_cliente->setUsuario($nuevo_usuario); // Asignar el usuario
+        $nuevo_cliente->setUsuario($nuevo_usuario); // Asignar el usuario al cliente
 
-        $entityManager->persist($nuevo_cliente);
-        $entityManager->flush(); // Guardar cliente
+        // Guardar primero el usuario, luego el cliente
+        $entityManager->persist($nuevo_usuario); // Guardamos el usuario
+        $entityManager->persist($nuevo_cliente); // Luego guardamos el cliente
+        $entityManager->flush(); // Guardamos ambos cambios en la base de datos
 
-        return new JsonResponse(['mensaje' => 'Usuario y Cliente registrados correctamente'], 201);
+        // Enviar el correo de activación al usuario
+        $email = (new Email())
+            ->from('no-reply@tudominio.com')
+            ->to($body['email'])
+            ->subject('Activa tu cuenta en nuestra plataforma')
+            ->html(
+                "<p>Bienvenido, haz clic en el siguiente enlace para activar tu cuenta:</p>
+            <p><a href='https://127.0.0.1:8000/api/activar/{$token}'>Activar mi cuenta</a></p>"
+            );
+
+        // Enviar el correo
+        $mailer->send($email);
+
+        // Responder que el usuario fue creado correctamente
+        return new JsonResponse(['mensaje' => 'Usuario y cliente registrados correctamente. Por favor, revisa tu correo para activar tu cuenta.'], 201);
+    }
+
+
+
+    #[Route('/activar-cuenta/{token}', name: 'activar_cuenta', methods: ['GET'])]
+    public function activarCuenta(string $token, Request $request, UsuarioRepository $usuarioRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        // Buscar el usuario por el token de activación (en el campo `activationToken`)
+        $usuario = $usuarioRepository->findOneBy(['activationToken' => $token]);
+
+        if (!$usuario) {
+            return $this->json(['error' => 'Token de activación inválido'], 404);
+        }
+
+        // Verificar si el token ya ha sido usado (si el token es null o si ya se ha activado)
+        if ($usuario->getRol() !== 'cliente') { // Aquí verificamos el rol del usuario
+            return $this->json(['error' => 'La cuenta ya está activada o el rol no es válido'], 400);
+        }
+
+        // Activar el usuario cambiando el rol (si es necesario)
+        // Si el rol ya es 'cliente', podrías omitir esta parte si no se requiere cambio de rol.
+        $usuario->setRol('cliente');  // Cambiar el rol si es necesario
+        $usuario->setActivationToken(null);  // Limpiar el token de activación
+
+        // Persistir cambios
+        $entityManager->flush();
+
+        return $this->json(['mensaje' => 'Tu cuenta ha sido activada.'], 200);
     }
 
 
@@ -151,6 +217,46 @@ final class UsuarioController extends AbstractController
         // Devolver una respuesta con éxito
         return $this->json(['mensaje' => 'Usuario eliminado correctamente']);
     }
+
+
+    #[Route('/api/admin-data', name: 'admin_data', methods: ['GET'])]
+    public function getAdminData(UsuarioRepository $usuarioRepository, SerializerInterface $serializer): JsonResponse
+    {
+        // Obtener el usuario autenticado
+        $usuario = $this->getUser(); // Symfony se encarga de esto cuando el usuario está autenticado
+
+        if (!$usuario || $usuario->getRol() !== 'admin') {
+            // Si el usuario no está autenticado o no tiene el rol de 'admin', retorna un error
+            return $this->json(['error' => 'Acceso no autorizado. Solo admins pueden ver esta información.'], 403);
+        }
+
+        // Obtener los datos del admin (puedes modificar esto para obtener más información si es necesario)
+        $json = $serializer->serialize($usuario, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId(); // Evita referencias circulares
+            },
+        ]);
+
+        // Retornar los datos del admin
+        return new JsonResponse($json, 200, [], true);
+    }
+
+    #[Route('/usuario/{nick}', methods: ['GET'])]
+    public function obtenerCorreo(string $nick, UsuarioRepository $usuarioRepository): JsonResponse
+    {
+        // Buscar el usuario por 'nick'
+        $usuario = $usuarioRepository->findOneBy(['nick' => $nick]);
+
+        if (!$usuario) {
+            return new JsonResponse(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        return new JsonResponse([
+            'nick' => $usuario->getNick(),
+            'email' => $usuario->getEmail()
+        ]);
+    }
+
 
 
 
