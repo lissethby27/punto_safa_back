@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+
 #[ORM\Entity(repositoryClass: UsuarioRepository::class)]
 #[ORM\Table(name: "usuario", schema: "puntosafa")]
 class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
@@ -30,14 +31,16 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: "email", type: Types::STRING, length: 150)]
     private ?string $email = null;
-    #[ORM\OneToOne(targetEntity: Cliente::class, mappedBy: "usuario", cascade: ["persist", "remove"])]
+    #[ORM\OneToOne( mappedBy: "usuario", targetEntity: Cliente::class, cascade: ["persist", "remove"])]
     private ?Cliente $cliente = null;
 
+     
     public function getCliente(): ?Cliente
     {
         return $this->cliente;
     }
 
+     
     public function setCliente(?Cliente $cliente): self
     {
         $this->cliente = $cliente;
@@ -58,12 +61,12 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->usuario = new ArrayCollection();
     }
-
+     
     public function getId(): ?int
     {
         return $this->id;
     }
-
+     
     public function getNick(): ?string
     {
         return $this->nick;
@@ -75,7 +78,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-
+     
     public function getContrasena(): ?string
     {
         return $this->contrasena;
@@ -93,7 +96,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
         return [$this->rol ? 'ROLE_' . strtoupper($this->rol) : 'ROLE_USER'];
     }
 
-
+     
     public function getRol(): ?string
     {
         return $this->rol;
@@ -108,7 +111,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-
+     
     public function getEmail(): ?string
     {
         return $this->email;
@@ -123,7 +126,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @return Collection<int, Resena>
-     */
+     */ 
     public function getUsuario(): Collection
     {
         return $this->usuario;
@@ -157,12 +160,12 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // Si tienes datos sensibles temporales, bórralos aquí
     }
-
+     
     public function getUserIdentifier(): string
     {
         return $this->nick;
     }
-
+     
     public function getPassword(): ?string
     {
         return $this->contrasena;

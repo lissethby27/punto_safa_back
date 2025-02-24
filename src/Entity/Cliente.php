@@ -6,6 +6,7 @@ use App\Repository\ClienteRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
 
+
 #[ORM\Entity(repositoryClass: ClienteRepository::class)]
 #[ORM\Table(name: "cliente", schema: "puntosafa")]
 class Cliente
@@ -37,13 +38,12 @@ class Cliente
     private ?Usuario $usuario = null;
 
 
-
-
+     
     public function getId(): ?int
     {
         return $this->id;
     }
-
+     
     public function getNombre(): ?string
     {
         return $this->nombre;
@@ -57,7 +57,7 @@ class Cliente
     }
 
 
-
+     
     public function getApellidos(): ?string
     {
         return $this->apellidos;
@@ -69,7 +69,7 @@ class Cliente
 
         return $this;
     }
-
+     
     public function getDNI(): ?string
     {
         return $this->DNI;
@@ -81,7 +81,7 @@ class Cliente
 
         return $this;
     }
-
+     
     public function getFoto(): ?string
     {
         return $this->foto;
@@ -93,7 +93,7 @@ class Cliente
 
         return $this;
     }
-
+     
     public function getDireccion(): ?string
     {
         return $this->direccion;
@@ -105,7 +105,7 @@ class Cliente
 
         return $this;
     }
-
+     
     public function getTelefono(): ?string
     {
         return $this->telefono;
@@ -118,7 +118,7 @@ class Cliente
         return $this;
     }
 
-
+     
     public function getUsuario(): ?Usuario
     {
         return $this->usuario;
