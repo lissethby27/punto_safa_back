@@ -40,28 +40,31 @@ final class PedidoController extends AbstractController
         $json_pedido = json_decode($request->getContent(), true);
 
         $pedido = new Pedido();
-//        $fecha = new \DateTime($json_pedido['fecha']);
-//        $pedido->setFecha($fecha);
         $pedido->setFecha(new \DateTime());
-        $clienteId = $json_pedido['cliente']; // Assuming 'cliente' contains the ID of the existing client
-        $cliente = $entityManager->getRepository(Cliente::class)->find($clienteId);
-        $pedido->setCliente($cliente);
-        $pedido->setTotal($json_pedido['total']);
-        $pedido->setEstado("procesado");
-        $pedido->SetDireccionEntrega($json_pedido['direccion_entrega']);
 
-        $cliente = $entityManager->getRepository(Cliente::class)->find($json_pedido['cliente']);
         if (!isset($json_pedido['cliente'])) {
             return new JsonResponse(['error' => 'Cliente ID is missing in the request'], 400);
         }
 
+        $cliente = $entityManager->getRepository(Cliente::class)->find($json_pedido['cliente']);
         if (!$cliente) {
             return new JsonResponse(['error' => 'Cliente not found'], 404);
         }
+
         $pedido->setCliente($cliente);
+        $pedido->setTotal($json_pedido['total']);
+        $pedido->setEstado("procesado");
+        $pedido->setDireccionEntrega($json_pedido['direccion_entrega']);
 
         foreach ($json_pedido['lineaPedidos'] as $lineaData) {
-            $libro = $entityManager->getRepository(Libro::class)->find($lineaData['libro']);
+            // Handle both formats: libro as an ID or as an object
+            $libroId = is_array($lineaData['libro']) ? ($lineaData['libro']['id'] ?? null) : $lineaData['libro'];
+
+            if (!$libroId) {
+                return new JsonResponse(['error' => 'Libro ID is missing in a lineaPedido'], 400);
+            }
+
+            $libro = $entityManager->getRepository(Libro::class)->find($libroId);
             if (!$libro) {
                 return new JsonResponse(['error' => 'Libro not found'], 404);
             }
@@ -75,12 +78,11 @@ final class PedidoController extends AbstractController
             $entityManager->persist($lineaPedido);
         }
 
-
-
         $entityManager->persist($pedido);
         $entityManager->flush();
 
-        return $this->json(['mensaje' => 'Datos guardados correctamente']);
+        return $this->json(['mensaje' => 'Pedido guardado correctamente']);
+
 
     }
 
