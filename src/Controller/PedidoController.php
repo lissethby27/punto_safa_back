@@ -48,16 +48,7 @@ final class PedidoController extends AbstractController
         $pedido->setCliente($cliente);
         $pedido->setTotal($json_pedido['total']);
         $pedido->setEstado("procesado");
-
-        $data = json_decode($request->getContent(), true);
-// Check if 'direccion_entrega' is set in the request
-        if (!isset($data['direccion_entrega'])) {
-            return new JsonResponse(['message' => 'Direccion not found'], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $pedido->setDireccionEntrega($data['direccion_entrega']);
-        $codigo = 'PO' . (new \DateTime())->format('dmY');
-        $pedido->setCodigo($codigo);
+        $pedido->SetDireccionEntrega($json_pedido['direccion_entrega']);
 
         $cliente = $entityManager->getRepository(Cliente::class)->find($json_pedido['cliente']);
         if (!isset($json_pedido['cliente'])) {
@@ -90,7 +81,6 @@ final class PedidoController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['mensaje' => 'Datos guardados correctamente']);
-
 
     }
 
