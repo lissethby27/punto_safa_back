@@ -14,15 +14,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 class Pedido
 {
-    public function getCodigo(): ?string
-    {
-        return $this->codigo;
-    }
-
-    public function setCodigo(?string $codigo): void
-    {
-        $this->codigo = $codigo;
-    }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -129,6 +120,16 @@ class Pedido
         $this->direccion_entrega = $direccion_entrega;
 
         return $this;
+    }
+
+    public function getCodigo(): ?string
+    {
+        return $this->codigo;
+    }
+
+    public function setCodigo(?string $codigo): void
+    {
+        $this->codigo = $codigo;
     }
 
     /**
