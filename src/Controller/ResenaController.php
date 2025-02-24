@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Knp\Component\Pager\PaginatorInterface;
+
 
 #[Route("/resena")]
 class ResenaController extends AbstractController
@@ -43,11 +45,6 @@ class ResenaController extends AbstractController
         $this->pedidoRepository = $pedidoRepository;
     }
 
-    private function verificarCompra(int $usuarioId, int $libroId): bool
-    {
-        $lineasPedido = $this->lineaPedidoRepository->findByUsuarioAndLibro($usuarioId, $libroId);
-        return !empty($lineasPedido);
-    }
 
     #[Route('/nueva', methods: ['POST'])]
     public function nuevaResena(
@@ -91,7 +88,7 @@ class ResenaController extends AbstractController
             return new JsonResponse(['mensaje' => 'Libro no encontrado.'], Response::HTTP_NOT_FOUND);
         }
 
-        // Verificar si el usuario ya hizo una reseña
+        // Verificar si el usuario ya hizo una reseña para este libro
         if ($this->resenaRepository->findOneBy(['usuario' => $usuario, 'libro' => $libro])) {
             return new JsonResponse(['mensaje' => 'Solo puedes hacer una reseña por libro.'], Response::HTTP_CONFLICT);
         }
@@ -101,17 +98,6 @@ class ResenaController extends AbstractController
             return new JsonResponse(['mensaje' => 'No has comprado este libro.'], Response::HTTP_FORBIDDEN);
         }
 
-        // Verificar si el pedido ha sido entregado
-        $pedido = $this->pedidoRepository->findOneBy([
-            'usuario' => $usuario,
-            'libro' => $libro,
-            'estado' => 'entregado'
-        ]);
-
-        if (!$pedido) {
-            return new JsonResponse(['mensaje' => 'Solo puedes hacer una reseña si tu pedido ha sido entregado.'], Response::HTTP_FORBIDDEN);
-        }
-
         // Validar calificación
         if (!is_numeric($dataResena['calificacion']) || $dataResena['calificacion'] < 1 || $dataResena['calificacion'] > 5) {
             return new JsonResponse(['mensaje' => 'La calificación debe ser un número entre 1 y 5.'], Response::HTTP_BAD_REQUEST);
@@ -119,7 +105,7 @@ class ResenaController extends AbstractController
 
         // Validar comentario
         if (empty($dataResena['comentario']) || strlen($dataResena['comentario']) > 200) {
-            return new JsonResponse(['mensaje' => 'Comentario inválido.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['mensaje' => 'El comentario no puede estar vacío y debe tener un máximo de 200 caracteres.'], Response::HTTP_BAD_REQUEST);
         }
 
         // Crear nueva reseña
@@ -143,6 +129,26 @@ class ResenaController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
+    /**
+     * Verifica si un usuario ha comprado un libro.
+     */
+    private function verificarCompra(int $usuarioId, int $libroId): bool
+    {
+        // Lógica para verificar si el usuario ha comprado el libro
+        // (Consulta en la base de datos si existe un pedido con el libro y el usuario)
+        $pedidos = $this->pedidoRepository->findBy(['usuario' => $usuarioId]);
+
+        foreach ($pedidos as $pedido) {
+            $lineasPedido = $this->lineaPedidoRepository->findBy(['pedido' => $pedido->getId(), 'libro' => $libroId]);
+            if (!empty($lineasPedido)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
 
 
 
@@ -165,19 +171,9 @@ class ResenaController extends AbstractController
 
     //Método para mostrar una reseña en específico
 
-    #[Route("/mostrar/{id}", name: "mostrar_resena", methods: ["GET"])]
-    public function mostrar(int $id): JsonResponse
-    {
-        $resena = $this->resenaRepository->find($id);
-        return $resena ? new JsonResponse([
-            'id' => $resena->getId(),
-            'usuario' => $resena->getUsuario()->getId(),
-            'libro' => $resena->getLibro()->getId(),
-            'calificacion' => $resena->getCalificacion(),
-            'comentario' => $resena->getComentario(),
-            'fecha' => $resena->getFechaFormatted()
-        ], Response::HTTP_OK) : new JsonResponse(['mensaje' => 'Reseña no encontrada.'], Response::HTTP_NOT_FOUND);
-    }
+
+
+
 
     // Método para actualizar una reseña o editarla
 
@@ -238,25 +234,29 @@ class ResenaController extends AbstractController
         $media = $this->resenaRepository->calcularMediaCalificacionPorLibro($id_libro);
 
         if ($media === null) {
-            return new JsonResponse(0, Response::HTTP_OK);
+            return new JsonResponse(['mensaje' => 'No hay reseñas para este libro.'], Response::HTTP_OK);
         }
 
-        return new JsonResponse($media, Response::HTTP_OK);
+        return new JsonResponse(['mediaCalificacion' => $media], Response::HTTP_OK);
     }
 
 
+    #[Route("/top-libros", name: "top_libros", methods: ["GET"])]
+    public function topLibros(Request $request): JsonResponse
+    {
+        $limit = $request->query->getInt('limit', 3);
 
-   #[Route("/top-libros", name: "top_libros", methods: ["GET"])]
-   public function topLibros(Request $request): JsonResponse
-   {
-       $limit = $request->query->getInt('limit', 3);
-       $topLibros = array_map(function ($libro) {
-           $libro['mediaCalificacion'] = number_format((float)$libro['mediaCalificacion'], 1, '.', '');
-           return $libro;
-       }, $this->resenaRepository->findTopRatedBooks($limit));
+        if ($limit <= 0) {
+            return new JsonResponse(['mensaje' => 'El límite debe ser un número positivo.'], Response::HTTP_BAD_REQUEST);
+        }
 
-       return new JsonResponse($topLibros, Response::HTTP_OK);
-   }
+        $topLibros = array_map(function ($libro) {
+            $libro['mediaCalificacion'] = number_format((float)$libro['mediaCalificacion'], 1, '.', '');
+            return $libro;
+        }, $this->resenaRepository->findTopRatedBooks($limit));
+
+        return new JsonResponse($topLibros, Response::HTTP_OK);
+    }
 
 
 }
