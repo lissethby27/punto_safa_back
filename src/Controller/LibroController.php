@@ -309,6 +309,19 @@ class LibroController extends AbstractController
 
     }
 
+//    #[Route('/filtro', name: 'libro_filters', methods: ['GET'])]
+//    public function getLibrosByFiltro(Request $request, LibroRepository $libroRepository): JsonResponse
+//    {
+//        $categoryId = $request->query->get('category');
+//        $minPrice = $request->query->get('minPrice');
+//        $maxPrice = $request->query->get('maxPrice');
+//
+//        $libros = $this->libroRepository->findLibrosByFiltro($categoryId, $minPrice, $maxPrice);
+//
+//        return $this->json($libros);
+//
+//    }
+
 
     #[Route('/filtered-books', name: 'filtered_books', methods: ['GET'])]
     public function getFilteredBooks(
@@ -321,56 +334,86 @@ class LibroController extends AbstractController
         $page = (int) $request->query->get('page', 1);
         $limit = (int) $request->query->get('limit', 9);
 
+        $minPrice = null;
+        $maxPrice = null;
 
-        $queryBuilder = $libroRepository->createQueryBuilder('l');
-
-
-        // Filtrar por categoría si se proporciona
-        if ($categoryId) {
-            $categoria = $categoriaRepository->find($categoryId);
-            if (!$categoria) {
-                return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
+        if($priceRanges){
+            switch ($priceRanges) {
+                case 'menor5':
+                    $minPrice = 0;
+                    $maxPrice = 5;
+                    break;
+                case "5-10":
+                    $minPrice = 5;
+                    $maxPrice = 10;
+                    break;
+                case "10-15":
+                    $minPrice = 10;
+                    $maxPrice = 15;
+                    break;
+                case "15-40":
+                    $minPrice = 15;
+                    $maxPrice = 40;
+                    break;
+                case "mayor40":
+                    $minPrice = 40;
+                    $maxPrice = 9999;
+                    break;
             }
-            $queryBuilder->andWhere('l.categoria = :categoria')
-                ->setParameter('categoria', $categoria);
         }
 
 
-        // Filtrar por rangos de precios si se proporcionan
-        if ($priceRanges) {
-            $priceArray = explode(',', $priceRanges);
-            $orX = $queryBuilder->expr()->orX();
-
-
-            foreach ($priceArray as $range) {
-                switch ($range) {
-                    case 'menor5':
-                        $orX->add('l.precio < 5');
-                        break;
-                    case '5-10':
-                        $orX->add('l.precio BETWEEN 5 AND 10');
-                        break;
-                    case '10-15':
-                        $orX->add('l.precio BETWEEN 10 AND 15');
-                        break;
-                    case '15-40':
-                        $orX->add('l.precio BETWEEN 15 AND 40');
-                        break;
-                    case 'mayor40':
-                        $orX->add('l.precio > 40');
-                        break;
-                }
-            }
-            $queryBuilder->andWhere($orX);
-        }
+//        $queryBuilder = $libroRepository->createQueryBuilder('l');
+//
+//
+//        // Filtrar por categoría si se proporciona
+//        if ($categoryId) {
+//            $categoria = $categoriaRepository->find($categoryId);
+//            if (!$categoria) {
+//                return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
+//            }
+//            $queryBuilder->andWhere('l.categoria = :categoria')
+//                ->setParameter('categoria', $categoria);
+//        }
+//
+//
+//        // Filtrar por rangos de precios si se proporcionan
+//        if ($priceRanges) {
+//            $priceArray = explode(',', $priceRanges);
+//            $orX = $queryBuilder->expr()->orX();
+//
+//
+//            foreach ($priceArray as $range) {
+//                switch ($range) {
+//                    case 'menor5':
+//                        $orX->add('l.precio < 5');
+//                        break;
+//                    case '5-10':
+//                        $orX->add('l.precio BETWEEN 5 AND 10');
+//                        break;
+//                    case '10-15':
+//                        $orX->add('l.precio BETWEEN 10 AND 15');
+//                        break;
+//                    case '15-40':
+//                        $orX->add('l.precio BETWEEN 15 AND 40');
+//                        break;
+//                    case 'mayor40':
+//                        $orX->add('l.precio > 40');
+//                        break;
+//                }
+//            }
+//            $queryBuilder->andWhere($orX);
+//        }
 
 
         // Paginación
-        $queryBuilder->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit);
+//        $queryBuilder->setFirstResult(($page - 1) * $limit)
+//            ->setMaxResults($limit);
+//
+//
+//        $libros = $queryBuilder->getQuery()->getResult();
 
-
-        $libros = $queryBuilder->getQuery()->getResult();
+        $libros = $libroRepository->findLibrosByFiltro($categoryId, $minPrice, $maxPrice);
 
 
         return $this->json($libros, Response::HTTP_OK, []);
