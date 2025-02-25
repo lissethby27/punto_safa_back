@@ -1,77 +1,42 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
 
-###> phpunit/phpunit ###
-/phpunit.xml
-.phpunit.result.cache
-###< phpunit/phpunit ###
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
 
-###> symfony/phpunit-bridge ###
-###< symfony/phpunit-bridge ###
-
-###> symfony/asset-mapper ###
-/public/assets/
-/assets/vendor/
-###< symfony/asset-mapper ###
-
+# IDEs and editors
 .idea/
-tests/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-composer.lock
-.env
-/templates/pedido/index.html.twig
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
 
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
 
-# Archivos de configuración sensibles
-#/.env
-
-/composer.lock
-
-# Archivos de configuración de bases de datos
-/config/secrets/*
-
-# Archivos de claves privadas
-#/config/jwt/*.pem
-
-# Archivos de caché y logs
-
-/logs/
-/cache/
-
-# Archivos de dependencias
-
-/node_modules/
-
-# Archivos de IDEs y editores
-/.idea/
-/.vscode/
-/*.sublime-project
-/*.sublime-workspace
-
-# Archivos de sistema operativo
+# System files
 .DS_Store
 Thumbs.db
-
-# Archivos de PHPUnit
-
-# Archivos de cobertura de código
-/coverage/
-/.clover
-/.coverage
-/.nyc_output
-/coverage-final.json
-
-# Archivos de despliegue
-/.build/
-
-/tests
-
-tests/
