@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -222,6 +224,27 @@ final class ClienteController extends AbstractController
         ]);
 
         return new JsonResponse($json, Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * @throws JWTDecodeFailureException
+     */
+    #[Route('/api/cliente/token-decode', name: 'decode_cliente_token', methods: ['POST'])]
+    public function decodeToken(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        $token = $request->request->get('token'); // Token enviado en la petición
+
+        if (!$token) {
+            return $this->json(['error' => 'Token no proporcionado'], 400);
+        }
+
+        $decoded = $jwtManager->decode($token);
+
+        if (!$decoded) {
+            return $this->json(['error' => 'Token inválido'], 400);
+        }
+
+        return $this->json($decoded);
     }
 
 

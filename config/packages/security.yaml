@@ -37,7 +37,7 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: PUBLIC_ACCESS }
         - { path: ^/usuario, roles: PUBLIC_ACCESS }
-        - { path: ^/api/cliente/auth/user, roles: [ ROLE_CLIENTE, ROLE_ADMIN ] }
+        - { path: ^/api/cliente/auth/user, roles: PUBLIC_ACCESS }
         - { path: ^/autor, roles: PUBLIC_ACCESS }
         - { path: ^/autor/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/autor/guardar, roles: ROLE_ADMIN }

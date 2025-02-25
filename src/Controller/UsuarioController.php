@@ -6,6 +6,8 @@ use App\Entity\Cliente;
 use App\Entity\Usuario;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -257,6 +259,23 @@ final class UsuarioController extends AbstractController
         ]);
     }
 
+
+    /**
+     * @throws JWTDecodeFailureException
+     */
+    #[Route('/api/usuario/token-decode', name: 'decode_token', methods: ['GET'])]
+    public function decodeToken(JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        $user = $this->getUser(); // Obtiene el usuario autenticado
+
+        if (!$user) {
+            return $this->json(['error' => 'No autenticado'], 401);
+        }
+
+        $tokenData = $jwtManager->decode($this->get('security.token_storage')->getToken());
+
+        return $this->json($tokenData);
+    }
 
 
 
