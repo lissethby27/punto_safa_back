@@ -50,14 +50,17 @@ class ClienteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-//    public function findOneByUsuario(Usuario $usuario): ?Cliente
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.usuario = :usuario')  // Asegúrate de que la propiedad 'usuario' exista en la entidad Cliente
-//            ->setParameter('usuario', $usuario)
-//            ->getQuery()
-//            ->getOneOrNullResult();
-//    }
+
+    // ClienteRepository.php
+    public function findOneByUsuario(Usuario $usuario): ?Cliente
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.usuario = :usuario')
+            ->setParameter('usuario', $usuario)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 
 
 }
