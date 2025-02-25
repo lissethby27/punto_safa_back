@@ -32,8 +32,8 @@ class Cliente
     #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
     private ?string $telefono = null;
 
-    #[ORM\ManyToOne(targetEntity: Usuario::class, fetch: "EAGER")]
-    #[ORM\JoinColumn(name: "id_usuario", referencedColumnName: "id", nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Usuario::class, cascade:["persist", "remove"])]
+    #[ORM\JoinColumn(name: "id_usuario")]
     private ?Usuario $usuario = null;
 
 
@@ -129,4 +129,8 @@ class Cliente
         $this->usuario = $usuario;
         return $this;
     }
+
+
+
+
 }

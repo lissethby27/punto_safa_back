@@ -19,10 +19,10 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(name: "nick", type: Types::STRING,length: 100)]
+    #[ORM\Column(name: "nick", type: Types::STRING, length: 100)]
     private ?string $nick = null;
 
-    #[ORM\Column(name: "contrasena", type: Types::STRING ,length: 255)]
+    #[ORM\Column(name: "contrasena", type: Types::STRING, length: 255)]
     private ?string $contrasena = null;
 
     #[ORM\Column(name: "rol", type: Types::STRING, length: 100)]
@@ -32,6 +32,11 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
     #[ORM\OneToOne(targetEntity: Cliente::class, mappedBy: "usuario", cascade: ["persist", "remove"])]
     private ?Cliente $cliente = null;
+
+
+    // Campo en memoria para el token de activación, no persistido en la base de datos
+    private ?string $activationToken = null;
+
 
     public function getCliente(): ?Cliente
     {
@@ -151,6 +156,17 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    // Métodos para el token de activación (solo en memoria, no persistido en la DB)
+    public function getActivationToken(): ?string
+    {
+        return $this->activationToken;
+    }
+
+    public function setActivationToken(?string $activationToken): static
+    {
+        $this->activationToken = $activationToken;
+        return $this;
+    }
 
 
     public function eraseCredentials(): void
@@ -167,6 +183,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->contrasena;
     }
+
 
 
 
