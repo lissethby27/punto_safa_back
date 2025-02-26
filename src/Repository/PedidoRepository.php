@@ -21,7 +21,9 @@ class PedidoRepository extends ServiceEntityRepository
     public function findByUsuario(int $usuarioId): array
     {
         return $this->createQueryBuilder('p')
-            ->andWhere('p.usuario = :usuarioId')
+            ->join('p.cliente', 'c') // Unir Pedido con Cliente
+            ->join('c.usuario', 'u') // Unir Cliente con Usuario
+            ->andWhere('u.id = :usuarioId') // Filtrar por el ID del usuario
             ->setParameter('usuarioId', $usuarioId)
             ->getQuery()
             ->getResult();

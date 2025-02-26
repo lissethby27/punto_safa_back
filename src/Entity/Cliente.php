@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\ClienteRepository;
-use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ClienteRepository::class)]
 #[ORM\Table(name: "cliente", schema: "puntosafa")]
@@ -12,11 +14,12 @@ class Cliente
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: "id", type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
     private ?string $nombre = null;
+
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
     private ?string $apellidos = null;
 
@@ -32,12 +35,17 @@ class Cliente
     #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
     private ?string $telefono = null;
 
-    #[ORM\ManyToOne(targetEntity: Usuario::class, cascade:["persist", "remove"])]
-    #[ORM\JoinColumn(name: "id_usuario")]
+    #[ORM\OneToOne(targetEntity: Usuario::class)]
+    #[ORM\JoinColumn(name: 'id_usuario', referencedColumnName: 'id', nullable: false)]
     private ?Usuario $usuario = null;
 
+    #[ORM\OneToMany(targetEntity: Pedido::class, mappedBy: 'cliente')]
+    private Collection $pedidos;
 
-
+    public function __construct()
+    {
+        $this->pedidos = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -52,11 +60,8 @@ class Cliente
     public function setNombre(string $nombre): static
     {
         $this->nombre = $nombre;
-
         return $this;
     }
-
-
 
     public function getApellidos(): ?string
     {
@@ -66,7 +71,6 @@ class Cliente
     public function setApellidos(string $apellidos): static
     {
         $this->apellidos = $apellidos;
-
         return $this;
     }
 
@@ -78,7 +82,6 @@ class Cliente
     public function setDNI(string $DNI): static
     {
         $this->DNI = $DNI;
-
         return $this;
     }
 
@@ -90,7 +93,6 @@ class Cliente
     public function setFoto(string $foto): static
     {
         $this->foto = $foto;
-
         return $this;
     }
 
@@ -102,7 +104,6 @@ class Cliente
     public function setDireccion(string $direccion): static
     {
         $this->direccion = $direccion;
-
         return $this;
     }
 
@@ -114,10 +115,8 @@ class Cliente
     public function setTelefono(string $telefono): static
     {
         $this->telefono = $telefono;
-
         return $this;
     }
-
 
     public function getUsuario(): ?Usuario
     {
@@ -130,7 +129,30 @@ class Cliente
         return $this;
     }
 
+    /**
+     * @return Collection<int, Pedido>
+     */
+    public function getPedidos(): Collection
+    {
+        return $this->pedidos;
+    }
 
+    public function addPedido(Pedido $pedido): self
+    {
+        if (!$this->pedidos->contains($pedido)) {
+            $this->pedidos[] = $pedido;
+            $pedido->setCliente($this);
+        }
+        return $this;
+    }
 
-
+    public function removePedido(Pedido $pedido): self
+    {
+        if ($this->pedidos->removeElement($pedido)) {
+            if ($pedido->getCliente() === $this) {
+                $pedido->setCliente(null);
+            }
+        }
+        return $this;
+    }
 }

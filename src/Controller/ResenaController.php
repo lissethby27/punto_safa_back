@@ -80,45 +80,45 @@ class ResenaController extends AbstractController
                 return new JsonResponse(['mensaje' => 'Usuario no encontrado.'], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Obtener el cliente asociado al usuario
-            $cliente = $usuario->getCliente();
-            if (!$cliente) {
-                return new JsonResponse(['mensaje' => 'No tienes permisos para hacer una reseña.'], Response::HTTP_FORBIDDEN);
-            }
-
-            // Verificar si el usuario ha comprado el libro HASTA AQUI PETA
-            if (!$this->verificarCompra($cliente->getId(), $libro->getId())) {
-                return new JsonResponse(['mensaje' => 'Debes comprar el libro antes de hacer una reseña.'], Response::HTTP_FORBIDDEN);
-            }
-
-            // Obtener y validar datos de la reseña
+            // 1. Obtener y validar datos de la reseña
             $dataResena = json_decode($request->getContent(), true);
             if (!isset($dataResena['libro'], $dataResena['calificacion'], $dataResena['comentario'])) {
                 return new JsonResponse(['mensaje' => 'Datos incompletos.'], Response::HTTP_BAD_REQUEST);
             }
 
-            // Validar el libro
+            // 2. Validar el libro
             $libro = $this->libroRepository->find($dataResena['libro']);
             if (!$libro) {
                 return new JsonResponse(['mensaje' => 'Libro no encontrado.'], Response::HTTP_NOT_FOUND);
             }
 
-            // Verificar si el usuario ya hizo una reseña para este libro
-            if ($this->resenaRepository->findOneBy(['usuario' => $usuario, 'libro' => $libro])) {
-                return new JsonResponse(['mensaje' => 'Solo puedes hacer una reseña por libro.'], Response::HTTP_CONFLICT);
+            // 3. Obtener el cliente asociado al usuario
+            $cliente = $usuario->getCliente();
+            if (!$cliente) {
+                return new JsonResponse(['mensaje' => 'No tienes permisos para hacer una reseña.'], Response::HTTP_FORBIDDEN);
             }
 
-            // Verificar si el usuario ha comprado el libro
+
+
+            // 4. Verificar si el usuario ha comprado el libro HASTA AQUI PETA
             if (!$this->verificarCompra($cliente->getId(), $libro->getId())) {
                 return new JsonResponse(['mensaje' => 'Debes comprar el libro antes de hacer una reseña.'], Response::HTTP_FORBIDDEN);
             }
 
-            // Validar calificación
+
+            //5.  Verificar si el usuario ya hizo una reseña para este libro
+            if ($this->resenaRepository->findOneBy(['usuario' => $usuario, 'libro' => $libro])) {
+                return new JsonResponse(['mensaje' => 'Solo puedes hacer una reseña por libro.'], Response::HTTP_CONFLICT);
+            }
+
+
+
+            // 6. Validar calificación
             if (!is_numeric($dataResena['calificacion']) || $dataResena['calificacion'] < 1 || $dataResena['calificacion'] > 5) {
                 return new JsonResponse(['mensaje' => 'La calificación debe ser un número entre 1 y 5.'], Response::HTTP_BAD_REQUEST);
             }
 
-            // Validar comentario
+            // 7. Validar comentario
             if (empty($dataResena['comentario']) || strlen($dataResena['comentario']) > 200) {
                 return new JsonResponse(['mensaje' => 'El comentario no puede estar vacío y debe tener un máximo de 200 caracteres.'], Response::HTTP_BAD_REQUEST);
             }
@@ -152,7 +152,6 @@ class ResenaController extends AbstractController
      */
     private function verificarCompra(int $clienteId, int $libroId): bool
     {
-        // Crear la consulta para verificar si el cliente ha comprado el libro
         $query = $this->entityManager->createQuery(
             'SELECT COUNT(lp.id) 
          FROM App\Entity\LineaPedido lp
@@ -162,6 +161,10 @@ class ResenaController extends AbstractController
             'clienteId' => $clienteId,
             'libroId' => $libroId
         ]);
+
+        // Depurar el SQL generado
+        $sql = $query->getSQL();
+        echo "SQL: $sql\n"; // Imprime el SQL en la consola o logs
 
         return $query->getSingleScalarResult() > 0;
     }
