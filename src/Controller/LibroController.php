@@ -258,6 +258,68 @@ class LibroController extends AbstractController
 
     }
 
+    #[Route('/filtered-books', name: 'filtered_books', methods: ['GET'])]
+    public function getFilteredBooks(
+        Request $request,
+        LibroRepository $libroRepository,
+        CategoriaRepository $categoriaRepository
+    ): JsonResponse {
+        $categoryId = $request->query->get('categoryId'); // Obtener ID de la categoría
+        $priceRanges = $request->query->get('priceRanges'); // Obtener rangos de precios como cadena
+        $page = (int) $request->query->get('page', 1);
+        $limit = (int) $request->query->get('limit', 9);
+
+        $queryBuilder = $libroRepository->createQueryBuilder('l');
+
+        // Filtrar por categoría si se proporciona
+        if ($categoryId) {
+            $categoria = $categoriaRepository->find($categoryId);
+            if (!$categoria) {
+                return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
+            }
+            $queryBuilder->andWhere('l.categoria = :categoria')
+                ->setParameter('categoria', $categoria);
+        }
+
+        // Filtrar por rangos de precios si se proporcionan
+        if ($priceRanges) {
+            $priceArray = explode(',', $priceRanges);
+            $orX = $queryBuilder->expr()->orX();
+
+            foreach ($priceArray as $range) {
+                switch ($range) {
+                    case 'menor5':
+                        $orX->add('l.precio < 5');
+                        break;
+                    case '5-10':
+                        $orX->add('l.precio BETWEEN 5 AND 10');
+                        break;
+                    case '10-15':
+                        $orX->add('l.precio BETWEEN 10 AND 15');
+                        break;
+                    case '15-40':
+                        $orX->add('l.precio BETWEEN 15 AND 40');
+                        break;
+                    case 'mayor40':
+                        $orX->add('l.precio > 40');
+                        break;
+                }
+            }
+            $queryBuilder->andWhere($orX);
+        }
+
+        // Paginación
+        $queryBuilder->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $libros = $queryBuilder->getQuery()->getResult();
+
+        return $this->json($libros, Response::HTTP_OK, []);
+    }
+
+
+
+
 
 
 
