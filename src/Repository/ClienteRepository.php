@@ -60,6 +60,15 @@ class ClienteRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+    // UsuarioRepository.php
+    public function findOneByUsername(string $username): ?Usuario
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.username = :username')
+            ->setParameter('username', $username)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 
 
 
