@@ -17,3 +17,8 @@ activar_cuenta:
     controller: App\Controller\UsuarioController::activarCuenta
     methods: GET
 
+restablecer_contrasena:
+    path: /api/restablecer-contrasena/{token}
+    controller: App\Controller\EmailController::restablecerContrasena
+    methods: [POST]
+
