@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+
 #[ORM\Entity(repositoryClass: UsuarioRepository::class)]
 #[ORM\Table(name: "usuario", schema: "puntosafa")]
 class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
@@ -30,8 +31,9 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: "email", type: Types::STRING, length: 150)]
     private ?string $email = null;
-    #[ORM\OneToOne(targetEntity: Cliente::class, mappedBy: "usuario", cascade: ["persist", "remove"])]
+    #[ORM\OneToOne( mappedBy: "usuario", targetEntity: Cliente::class, cascade: ["persist", "remove"])]
     private ?Cliente $cliente = null;
+
 
 
 
@@ -42,6 +44,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->cliente;
     }
+
 
     public function setCliente(?Cliente $cliente): self
     {

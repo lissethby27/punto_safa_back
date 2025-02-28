@@ -36,6 +36,10 @@ class Pedido
     #[Groups(['pedido:read'])]
     private ?string $direccion_entrega = null;
 
+    #[ORM\Column(name: "codigo", type: Types::STRING, length: 10)]
+    #[Groups(['pedido:read'])]
+    private ?string $codigo = null;
+
 
     #[ORM\OneToOne(targetEntity: Cliente::class,  cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(name: "id_cliente", referencedColumnName: "id", nullable: false)]
@@ -116,6 +120,16 @@ class Pedido
         $this->direccion_entrega = $direccion_entrega;
 
         return $this;
+    }
+
+    public function getCodigo(): ?string
+    {
+        return $this->codigo;
+    }
+
+    public function setCodigo(?string $codigo): void
+    {
+        $this->codigo = $codigo;
     }
 
     /**
