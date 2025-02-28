@@ -3,3 +3,22 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+api_login_check:
+    path: /api/login_check
+
+    # esto es para cargar los libros
+api_libros:
+    path: /libro/all
+    controller: App\Controller\LibroController::listarLibros
+    methods: GET
+
+activar_cuenta:
+    path: /api/activar/{token}
+    controller: App\Controller\UsuarioController::activarCuenta
+    methods: GET
+
+restablecer_contrasena:
+    path: /api/restablecer-contrasena/{token}
+    controller: App\Controller\EmailController::restablecerContrasena
+    methods: [POST]
+
