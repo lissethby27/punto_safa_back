@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Controller;
 use App\Entity\Libro;
 use App\Repository\LibroRepository;
@@ -15,6 +16,8 @@ use App\Repository\AutorRepository;
 use App\Repository\CategoriaRepository;
 
 
+
+
 #[Route('/libro')]
 class LibroController extends AbstractController
 {
@@ -23,6 +26,7 @@ class LibroController extends AbstractController
     private LibroRepository $libroRepository;
     private AutorRepository $autorRepository;
     private CategoriaRepository $categoriaRepository;
+
 
     // Constructor correctamente definido
     public function __construct(
@@ -43,12 +47,18 @@ class LibroController extends AbstractController
 
 
 
+
+
+
+
+
     //Guardar libro en la base de datos
     #[Route('/guardar', name: 'guardar_libro', methods: ['POST'])]
     public function crearLibro(Request $request): JsonResponse
     {
         // Obtener datos del JSON
         $datosLibro = json_decode($request->getContent(), true);
+
 
         // Validar datos
         if (!isset($datosLibro['titulo'], $datosLibro['precio'], $datosLibro['ISBN'], $datosLibro['editorial'],
@@ -57,15 +67,18 @@ class LibroController extends AbstractController
             return new JsonResponse(['mensaje' => 'Faltan datos obligatorios'], 400);
         }
 
+
         //Validar el título no puedde tener más de 255 caracteres
         if (strlen($datosLibro['titulo']) > 255) {
             return new JsonResponse(['mensaje' => 'El título no puede tener más de 255 caracteres'], 400);
         }
 
+
         // Validar que el precio es un número positivo
         if (!is_numeric($datosLibro['precio']) || $datosLibro['precio'] < 0) {
             return new JsonResponse(['mensaje' => 'El precio debe ser un número positivo'], 400);
         }
+
 
         // Validar que el año de publicación es una fecha válida
         if (!\DateTime::createFromFormat('Y-m-d', $datosLibro['anio_publicacion'])) {
@@ -73,10 +86,13 @@ class LibroController extends AbstractController
         }
 
 
+
+
         // Validar el ISBN (longitud y solo números o guiones)
         if (!preg_match('/^\d{10}(\d{3})?$/', str_replace('-', '', $datosLibro['ISBN']))) {
             return new JsonResponse(['mensaje' => 'Formato de ISBN inválido'], 400);
         }
+
 
         //Validar que el ISB no exista en la base de datos
         $libro = $this->libroRepository->findOneBy(['ISBN' => $datosLibro['ISBN']]);
@@ -84,10 +100,12 @@ class LibroController extends AbstractController
             return new JsonResponse(['mensaje' => 'El ISBN ya está en uso'], 400);
         }
 
+
         //Máximo de caracteres en el resumen de 800
         if (strlen($datosLibro['resumen']) > 800) {
             return new JsonResponse(['mensaje' => 'El resumen no puede tener más de 800 caracteres'], 400);
         }
+
 
         // Crear una nueva instancia del libro
         $libro = new Libro();
@@ -101,20 +119,25 @@ class LibroController extends AbstractController
             ->setIdioma($datosLibro['idioma'] ?? null)
             ->setNumPaginas($datosLibro['num_paginas'] ?? null);
 
+
         // Obtener el Autor y Categoria desde el repositorio para asignarlos al libro (si existen)
         $autor = $this->autorRepository->find($datosLibro['autor']);
         $categoria = $this->categoriaRepository->find($datosLibro['categoria']);
+
 
         if (!$autor || !$categoria) {
             return new JsonResponse(['mensaje' => 'Autor o categoría no encontrados'], 400);
         }
 
+
         $libro->setAutor($autor);
         $libro->setCategoria($categoria);
 
-//        if (!$this->isGranted('ROLE_ADMIN')) {
-//            return new JsonResponse(['mensaje' => 'No tienes permisos para realizar esta acción'], 403);
-//        }
+
+
+
+
+
 
 
         // Persistir el libro en la base de datos
@@ -122,8 +145,12 @@ class LibroController extends AbstractController
         $this->entityManager->flush();
 
 
+
+
         return new JsonResponse(['mensaje' => 'Libro guardado correctamente'], 201);
     }
+
+
 
 
     //Lista de todos los libros existentes en la base de datos
@@ -136,9 +163,11 @@ class LibroController extends AbstractController
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 9);
 
+
         // Crear consulta personalizada para evitar referencias circulares y mostrar datos relacionados de forma más clara
         $query = $libroRepository->createQueryBuilder('l')
             ->getQuery();
+
 
         // Paginar resultados y serializar a JSON con opciones personalizadas para evitar referencias circulares y mostrar datos relacionados de forma más clara
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query);
@@ -146,16 +175,21 @@ class LibroController extends AbstractController
             ->setFirstResult($limit * ($page - 1))
             ->setMaxResults($limit);
 
+
         $listaLibros = iterator_to_array($paginator);
+
 
         $jsonLibros = $this->serializer->serialize($listaLibros, 'json', [
             AbstractNormalizer::CALLBACKS => [
                 'categoria' => fn($innerObject) => $innerObject ? $innerObject->getNombre() : null,
                 'autor' => fn($innerObject) => $innerObject ? [
 
+
                     'nombre' => $innerObject->getNombre(),
 
+
                     'apellidos' => $innerObject->getApellidos(),
+
 
                 ] : null,
                 'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null,
@@ -164,8 +198,10 @@ class LibroController extends AbstractController
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
+
         return new JsonResponse($jsonLibros, 200, [], true);
     }
+
 
     #[Route('/precio/{range}', name: 'libros_by_precio', methods: ['GET'])]
     public function getLibrosByPrecio(LibroRepository $libroRepository, string $range): JsonResponse{
@@ -212,25 +248,36 @@ class LibroController extends AbstractController
         }
         return $this->json($listaLibros, Response::HTTP_OK, []);
 
+
     }
+
+
+
 
 
 
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
     public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
 
+
         $categoria = $categoriaRepository->find($id);
+
 
         if(!$categoria){
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
         }
 
+
         $libros = $libroRepository->findBy(['categoria' => $categoria]);
+
+
 
 
         return $this->json($libros, Response::HTTP_OK, []);
 
+
     }
+
 
     #[Route('/search', name: 'search_libros', methods: ['GET'])]
     public function searchLibros(
@@ -240,9 +287,11 @@ class LibroController extends AbstractController
         // Get the search query from the request
         $query = $request->query->get('q');
 
+
         if (!$query) {
             return new JsonResponse(['error' => 'Debe proporcionar un término de búsqueda'], Response::HTTP_BAD_REQUEST);
         }
+
 
         // Search for libros by title or author
         $libros = $libroRepository->createQueryBuilder('l')
@@ -254,9 +303,13 @@ class LibroController extends AbstractController
             ->getQuery()
             ->getResult();
 
+
         return $this->json($libros, JsonResponse::HTTP_OK, []);
 
+
     }
+
+
 
     #[Route('/filtered-books', name: 'filtered_books', methods: ['GET'])]
     public function getFilteredBooks(
@@ -269,53 +322,46 @@ class LibroController extends AbstractController
         $page = (int) $request->query->get('page', 1);
         $limit = (int) $request->query->get('limit', 9);
 
-        $queryBuilder = $libroRepository->createQueryBuilder('l');
+        $minPrice = null;
+        $maxPrice = null;
 
-        // Filtrar por categoría si se proporciona
-        if ($categoryId) {
-            $categoria = $categoriaRepository->find($categoryId);
-            if (!$categoria) {
-                return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
+        if($priceRanges){
+            switch ($priceRanges) {
+                case 'menor5':
+                    $minPrice = 0;
+                    $maxPrice = 5;
+                    break;
+                case "5-10":
+                    $minPrice = 5;
+                    $maxPrice = 10;
+                    break;
+                case "10-15":
+                    $minPrice = 10;
+                    $maxPrice = 15;
+                    break;
+                case "15-40":
+                    $minPrice = 15;
+                    $maxPrice = 40;
+                    break;
+                case "mayor40":
+                    $minPrice = 40;
+                    $maxPrice = 9999;
+                    break;
             }
-            $queryBuilder->andWhere('l.categoria = :categoria')
-                ->setParameter('categoria', $categoria);
         }
 
-        // Filtrar por rangos de precios si se proporcionan
-        if ($priceRanges) {
-            $priceArray = explode(',', $priceRanges);
-            $orX = $queryBuilder->expr()->orX();
+        $libros = $libroRepository->findLibrosByFiltro($categoryId, $minPrice, $maxPrice);
 
-            foreach ($priceArray as $range) {
-                switch ($range) {
-                    case 'menor5':
-                        $orX->add('l.precio < 5');
-                        break;
-                    case '5-10':
-                        $orX->add('l.precio BETWEEN 5 AND 10');
-                        break;
-                    case '10-15':
-                        $orX->add('l.precio BETWEEN 10 AND 15');
-                        break;
-                    case '15-40':
-                        $orX->add('l.precio BETWEEN 15 AND 40');
-                        break;
-                    case 'mayor40':
-                        $orX->add('l.precio > 40');
-                        break;
-                }
-            }
-            $queryBuilder->andWhere($orX);
-        }
-
-        // Paginación
-        $queryBuilder->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit);
-
-        $libros = $queryBuilder->getQuery()->getResult();
 
         return $this->json($libros, Response::HTTP_OK, []);
     }
+
+
+
+
+
+
+
 
 
 
@@ -332,9 +378,11 @@ class LibroController extends AbstractController
             return $this->json(['mensaje' => 'Libro no encontrado'], 404);
         }
 
+
         $json = $this->serializer->serialize($libro, 'json', [
             AbstractNormalizer::CALLBACKS => [
                 'anioPublicacion' => fn($object) => $object instanceof \DateTimeInterface ? $object->format('Y-m-d') : null, // Formatear fecha de publicación
+
 
                 'categoria' => function ($innerObject) {
                     return $innerObject ? $innerObject->getNombre() : null;
@@ -342,9 +390,13 @@ class LibroController extends AbstractController
                 'autor' => function ($innerObject) {
                     return $innerObject ? $innerObject->getNombre() . ' ' . $innerObject->getApellidos() : null;
 
+
                 },
                 'lineaPedidos' => function ($innerObject) {
                     return 'Dato restringido';                }, // Evitar serialización de LineaPedido. Queda pendiente de resolver la duda, po rposible requirimiento de la app
+
+
+
 
 
 
@@ -352,8 +404,12 @@ class LibroController extends AbstractController
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
+
         return new JsonResponse($json, 200, [], true);
     }
+
+
+
 
 
 
@@ -366,8 +422,10 @@ class LibroController extends AbstractController
             return new JsonResponse(['mensaje' => 'Libro no encontrado, inténtelo de nuevo'], 404);
         }
 
+
         // Decodificar el JSON del request
         $editarLibro = json_decode($request->getContent(), true);
+
 
         try {
             // Editar título
@@ -378,6 +436,7 @@ class LibroController extends AbstractController
                 $libro->setTitulo($editarLibro['titulo']);
             }
 
+
             // Editar resumen
             if (isset($editarLibro['resumen'])) {
                 if (strlen($editarLibro['resumen']) > 800) {
@@ -385,6 +444,7 @@ class LibroController extends AbstractController
                 }
                 $libro->setResumen($editarLibro['resumen']);
             }
+
 
             // Editar año de publicación (con validación)
             if (isset($editarLibro['anio_publicacion'])) {
@@ -395,10 +455,12 @@ class LibroController extends AbstractController
                 $libro->setAnioPublicacion($fechaPublicacion);
             }
 
+
             // Editar precio (con validación)
             if (isset($editarLibro['precio']) && is_numeric($editarLibro['precio']) && $editarLibro['precio'] > 0) {
                 $libro->setPrecio($editarLibro['precio']);
             }
+
 
             // Editar ISBN (con validación)
             if (isset($editarLibro['ISBN'])) {
@@ -408,25 +470,30 @@ class LibroController extends AbstractController
                 $libro->setISBN($editarLibro['ISBN']);
             }
 
+
             // Editar editorial
             if (isset($editarLibro['editorial'])) {
                 $libro->setEditorial($editarLibro['editorial']);
             }
+
 
             // Editar imagen (esto puede depender de cómo se gestione la subida de archivos)
             if (isset($editarLibro['imagen'])) {
                 $libro->setImagen($editarLibro['imagen']);
             }
 
+
             // Editar idioma
             if (isset($editarLibro['idioma'])) {
                 $libro->setIdioma($editarLibro['idioma']);
             }
 
+
             // Editar número de páginas
             if (isset($editarLibro['num_paginas'])) {
                 $libro->setNumPaginas($editarLibro['num_paginas']);
             }
+
 
             // Manejar la relación con Autor
             if (isset($editarLibro['autor'])) {
@@ -438,6 +505,7 @@ class LibroController extends AbstractController
                 // Asignar el objeto Autor al libro
                 $libro->setAutor($autor);
             }
+
 
             // Manejar la relación con Categoria
             if (isset($editarLibro['categoria'])) {
@@ -455,8 +523,14 @@ class LibroController extends AbstractController
 
 
 
+
+
+
             // Guardar los cambios en la base de datos
             $this->entityManager->flush();
+
+
+
 
 
 
@@ -470,20 +544,28 @@ class LibroController extends AbstractController
 
 
 
+
+
+
+
+
     //Eliminar un libro por su id
     #[Route('/eliminar/{id}', name: 'eliminar_libro', methods: ['DELETE'])]
     public function eliminarLibro(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
         $libro = $entityManager->getRepository(Libro::class)->find($id);
 
+
         if (!$libro) {
             return new JsonResponse(['mensaje' => 'Libro no encontrado, inténtelo de nuevo'], 404);
         }
+
 
         $lineasPedido = $libro->getLineaPedidos();
         if (count($lineasPedido) > 0) {
             return new JsonResponse(['mensaje' => 'No se puede eliminar un libro con pedidos activos'], 400);
         }
+
 
 //        if (!$this->isGranted('ROLE_ADMIN')) {
 //            return new JsonResponse(['mensaje' => 'No tienes permisos para realizar esta acción'], 403);
@@ -493,12 +575,21 @@ class LibroController extends AbstractController
 
 
 
+
+
+
+
+
         $titulo = $libro->getTitulo();
         $entityManager->remove($libro);
         $entityManager->flush();
 
+
         return new JsonResponse(['mensaje' => "Libro '$titulo' eliminado correctamente"], 200);
+
 
     }
 
+
 }
+

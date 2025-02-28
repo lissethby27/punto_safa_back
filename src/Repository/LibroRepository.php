@@ -78,6 +78,8 @@ class LibroRepository extends ServiceEntityRepository
 
 
 
+
+
     //    /**
     //     * @return Libro[] Returns an array of Libro objects
     //     */
@@ -102,4 +104,23 @@ class LibroRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function findLibrosByFiltro(?int $categoryId, ?int $minPrice, ?int $maxPrice)
+    {
+
+        $qb= $this->createQueryBuilder('libro');
+
+        if($categoryId){
+            $qb->andWhere('libro.categoria = :category')
+                ->setParameter('category', $categoryId);
+        }
+        if($minPrice !== null   && $maxPrice !== null){
+            $qb->andWhere('libro.precio BETWEEN :minPrice AND :maxPrice')
+                ->setParameter('minPrice', $minPrice)
+                ->setParameter('maxPrice', $maxPrice);
+        }
+
+        return $qb->getQuery()->getResult();
+
+    }
 }

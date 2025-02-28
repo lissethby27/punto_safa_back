@@ -8,6 +8,8 @@ use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,11 +27,13 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 final class UsuarioController extends AbstractController
 {
     private UsuarioRepository $usuarioRepository;
+    private EntityManagerInterface $entityManager;
 
 
-    public function __construct(UsuarioRepository $usuarioRepository)
+    public function __construct(UsuarioRepository $usuarioRepository, EntityManagerInterface $entityManager)
     {
         $this->usuarioRepository = $usuarioRepository;
+        $this->entityManager = $entityManager;
 
     }
 
@@ -95,8 +99,9 @@ final class UsuarioController extends AbstractController
         $nuevo_usuario->setRol("cliente");
 
         // Crear un token de activación
-        $token = bin2hex(random_bytes(32));  // Crear un token único
-        $nuevo_usuario->setActivationToken($token);  // Suponiendo que hayas agregado un campo 'activationToken' en la entidad Usuario
+        $token = base64_encode($body['email']); // Codificar email
+        $token = rtrim(strtr($token, '+/', '-_'), '='); // Hacerlo URL-safe
+// Hacerlo seguro para URLs
 
         // Crear el cliente asociado al usuario
         $nuevo_cliente = new Cliente();
@@ -115,13 +120,13 @@ final class UsuarioController extends AbstractController
 
         // Enviar el correo de activación al usuario
         $email = (new Email())
-            ->from('no-reply@tudominio.com')
+            ->from('puntosafalibreria@gmail.com')
             ->to($body['email'])
-            ->subject('Activa tu cuenta en nuestra plataforma')
-            ->html(
-                "<p>Bienvenido, haz clic en el siguiente enlace para activar tu cuenta:</p>
-            <p><a href='https://127.0.0.1:8000/api/activar/{$token}'>Activar mi cuenta</a></p>"
-            );
+            ->subject('Activa tu cuenta')
+            ->html("<p>Haz clic en el enlace para activar tu cuenta:</p>
+<p><a href='http://localhost:8000/api/activar/{$token}'>Activar cuenta</a></p>");
+
+
 
         // Enviar el correo
         $mailer->send($email);
@@ -132,31 +137,34 @@ final class UsuarioController extends AbstractController
 
 
 
-    #[Route('/activar-cuenta/{token}', name: 'activar_cuenta', methods: ['GET'])]
-    public function activarCuenta(string $token, Request $request, UsuarioRepository $usuarioRepository, EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/activar/{token}', name: 'activar_cuenta', methods: ['GET'])]
+    public function activarCuenta(string $token): Response
     {
-        // Buscar el usuario por el token de activación (en el campo `activationToken`)
-        $usuario = $usuarioRepository->findOneBy(['activationToken' => $token]);
+        // Decodificar el email desde el token
+        $email = base64_decode(strtr($token, '-_', '+/'), true);
+
+        // Validar que el email es correcto
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return new Response('Token de activación inválido', 400);
+        }
+
+        // Buscar el usuario por email
+        $usuario = $this->usuarioRepository->findOneBy(['email' => $email]);
 
         if (!$usuario) {
-            return $this->json(['error' => 'Token de activación inválido'], 404);
+            return new Response('Usuario no encontrado', 404);
         }
 
-        // Verificar si el token ya ha sido usado (si el token es null o si ya se ha activado)
-        if ($usuario->getRol() !== 'cliente') { // Aquí verificamos el rol del usuario
-            return $this->json(['error' => 'La cuenta ya está activada o el rol no es válido'], 400);
-        }
+        // Activar la cuenta (cambiando su rol)
+        $usuario->setRol('cliente');
 
-        // Activar el usuario cambiando el rol (si es necesario)
-        // Si el rol ya es 'cliente', podrías omitir esta parte si no se requiere cambio de rol.
-        $usuario->setRol('cliente');  // Cambiar el rol si es necesario
-        $usuario->setActivationToken(null);  // Limpiar el token de activación
+        // Guardar cambios
+        $this->entityManager->flush();
 
-        // Persistir cambios
-        $entityManager->flush();
-
-        return $this->json(['mensaje' => 'Tu cuenta ha sido activada.'], 200);
+        // Redirigir al frontend en Angular
+        return new RedirectResponse('http://localhost:4200/home');
     }
+
 
 
     #[Route('usuario/all', name: 'all', methods: ['GET'])]
@@ -280,6 +288,7 @@ final class UsuarioController extends AbstractController
 
         return $this->json($tokenData);
     }
+
 
 
 

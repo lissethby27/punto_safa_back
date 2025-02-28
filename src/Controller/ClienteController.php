@@ -3,17 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Cliente;
+use App\Entity\Usuario;
 use App\Repository\ClienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+
 
 #[Route('/api/cliente')]
 final class ClienteController extends AbstractController
@@ -212,7 +215,7 @@ final class ClienteController extends AbstractController
         }
 
         // Obtener el cliente asociado al usuario usando el método personalizado en el repositorio
-        $cliente = $clienteRepository->findOneByUsuario($usuario);  // Aquí se usa el método que creaste
+        $cliente = $clienteRepository->findOneByUsuario($usuario);  // Aquí se usa el método
 
         if (!$cliente) {
             return $this->json(['error' => 'No se encontró cliente asociado a este usuario'], Response::HTTP_NOT_FOUND);

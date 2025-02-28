@@ -11,3 +11,14 @@ api_libros:
     path: /libro/all
     controller: App\Controller\LibroController::listarLibros
     methods: GET
+
+activar_cuenta:
+    path: /api/activar/{token}
+    controller: App\Controller\UsuarioController::activarCuenta
+    methods: GET
+
+restablecer_contrasena:
+    path: /api/restablecer-contrasena/{token}
+    controller: App\Controller\EmailController::restablecerContrasena
+    methods: [POST]
+
