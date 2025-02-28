@@ -215,7 +215,7 @@ final class ClienteController extends AbstractController
         }
 
         // Obtener el cliente asociado al usuario usando el método personalizado en el repositorio
-        $cliente = $clienteRepository->findOneByUsuario($usuario);  // Aquí se usa el método que creaste
+        $cliente = $clienteRepository->findOneByUsuario($usuario);  // Aquí se usa el método
 
         if (!$cliente) {
             return $this->json(['error' => 'No se encontró cliente asociado a este usuario'], Response::HTTP_NOT_FOUND);
