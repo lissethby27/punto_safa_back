@@ -68,7 +68,7 @@ class ClienteRepository extends ServiceEntityRepository
     /**
      * @throws NonUniqueResultException
      */
-//    public function findOneByUsuario(UserInterface $usuario): ?Cliente
+//    public function findOneByUsuario(Usuario $usuario): ?Cliente
 //    {
 //        return $this->createQueryBuilder('c')
 //            ->andWhere('c.usuario = :usuario')  // Asegúrate de que la propiedad 'usuario' exista en la entidad Cliente

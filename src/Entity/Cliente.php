@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ClienteRepository::class)]
 #[ORM\Table(name: "cliente", schema: "puntosafa")]
@@ -16,24 +17,31 @@ class Cliente
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: "id", type: Types::INTEGER)]
+    #[Groups(['pedido:read'])]
     private ?int $id = null;
 
     #[ORM\Column(name: "nombre", type: Types::STRING, length: 100)]
+    #[Groups(['pedido:read'])]
     private ?string $nombre = null;
 
     #[ORM\Column(name: "apellidos", type: Types::STRING, length: 100)]
+    #[Groups(['pedido:read'])]
     private ?string $apellidos = null;
 
     #[ORM\Column(name: "DNI", type: Types::STRING, length: 100, unique: true)]
+    #[Groups(['pedido:read'])]
     private ?string $DNI = null;
 
     #[ORM\Column(name: "foto", type: Types::STRING, length: 255)]
+    #[Groups(['pedido:read'])]
     private ?string $foto = null;
 
     #[ORM\Column(name: "direccion", type: Types::STRING, length: 200)]
+    #[Groups(['pedido:read'])]
     private ?string $direccion = null;
 
     #[ORM\Column(name: "telefono", type: Types::STRING, length: 100)]
+    #[Groups(['pedido:read'])]
     private ?string $telefono = null;
 
     #[ORM\OneToOne(targetEntity: Usuario::class)]
@@ -128,33 +136,6 @@ class Cliente
     public function setUsuario(Usuario $usuario): static
     {
         $this->usuario = $usuario;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Pedido>
-     */
-    public function getPedidos(): Collection
-    {
-        return $this->pedidos;
-    }
-
-    public function addPedido(Pedido $pedido): self
-    {
-        if (!$this->pedidos->contains($pedido)) {
-            $this->pedidos[] = $pedido;
-            $pedido->setCliente($this);
-        }
-        return $this;
-    }
-
-    public function removePedido(Pedido $pedido): self
-    {
-        if ($this->pedidos->removeElement($pedido)) {
-            if ($pedido->getCliente() === $this) {
-                $pedido->setCliente(null);
-            }
-        }
         return $this;
     }
 }
