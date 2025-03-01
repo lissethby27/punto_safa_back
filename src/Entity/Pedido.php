@@ -37,10 +37,10 @@ class Pedido
     private ?string $direccion_entrega = null;
 
 
-    #[ORM\OneToOne(targetEntity: Cliente::class,  cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: Cliente::class, inversedBy: 'pedidos')]
     #[ORM\JoinColumn(name: "id_cliente", referencedColumnName: "id", nullable: false)]
     #[Groups(['pedido:read'])]
-    private ?Cliente $cliente=null;
+    private ?Cliente $cliente = null;
 
     /**
      * @var Collection<int, LineaPedido>

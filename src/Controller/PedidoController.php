@@ -34,6 +34,60 @@ final class PedidoController extends AbstractController
         return new Response($json, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
+    #[Route('/{id}/estado', name: 'update_estado_pedido', methods: ['PUT'])]
+    public function updateEstado(int $id,
+                                 Request $request, PedidoRepository $pedidoRepository,
+                                 SerializerInterface $serializer,
+                                 EntityManagerInterface $entityManager): Response
+    {
+        // Retrieve the Pedido entity
+        $pedido = $pedidoRepository->find($id);
+        if (!$pedido) {
+            return $this->json(['message' => 'Pedido not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['estado'])) {
+            return new JsonResponse(['error' => 'New estado is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Update the estado field
+        $pedido->setEstado($data['estado']);
+
+        // Persist changes using the injected EntityManager
+        $entityManager->persist($pedido);
+        $entityManager->flush();
+
+        // Serialize the updated Pedido object
+        $json = $serializer->serialize($pedido, 'json', ['groups' => 'pedido:read']);
+
+        return $this->json([
+            'message' => 'Estado updated successfully',
+            'pedido' => [
+                'id' => $pedido->getId(),
+                'estado' => $pedido->getEstado(),
+            ]
+        ]);
+    }
+
+    #[Route('/all/pendientes', name: 'get_all_pedidos', methods: ['GET'])]
+    public function getPendingPedidos(PedidoRepository $pedidoRepository, SerializerInterface $serializer): Response
+    {
+        $pedidos = $pedidoRepository->createQueryBuilder('p')
+            ->leftJoin('p.cliente', 'c')  // Join Cliente entity
+            ->addSelect('c') // Fetch Cliente data
+            ->where('p.estado != :entregado')
+            ->setParameter('entregado', 'entregado')
+            ->getQuery()
+            ->getResult();
+
+        // Serialize the pedidos with a defined group
+        $json = $serializer->serialize($pedidos, 'json', ['groups' => 'pedido:read']);
+
+        return new Response($json, Response::HTTP_OK, ['Content-Type' => 'application/json']);
+    }
+
     #[Route('/save', name: 'save_pedidos', methods: ['POST'])]
     public function savePedido(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager): JsonResponse
     {
