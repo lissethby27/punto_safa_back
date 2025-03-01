@@ -203,52 +203,54 @@ class LibroController extends AbstractController
     }
 
 
-    #[Route('/precio/{range}', name: 'libros_by_precio', methods: ['GET'])]
-    public function getLibrosByPrecio(LibroRepository $libroRepository, string $range): JsonResponse{
-        switch ($range) {
-            case 'menor5':
-                $listaLibros = $libroRepository->createQueryBuilder('l')
-                    ->where('l.precio < :precio')
-                    ->setParameter('precio', 5)
-                    ->getQuery()
-                    ->getResult();
-                break;
-            case '5-10':
-                $listaLibros = $libroRepository->createQueryBuilder('l')
-                    ->where('l.precio BETWEEN :min AND :max')
-                    ->setParameter('min', 5)
-                    ->setParameter('max', 10)
-                    ->getQuery()
-                    ->getResult();
-                break;
-            case '10-15':
-                $listaLibros = $libroRepository->createQueryBuilder('l')
-                    ->where('l.precio BETWEEN :min AND :max')
-                    ->setParameter('min', 10)
-                    ->setParameter('max', 15)
-                    ->getQuery()
-                    ->getResult();
-                break;
-            case '15-40':
-                $listaLibros = $libroRepository->createQueryBuilder('l')
-                    ->where('l.precio BETWEEN :min AND :max')
-                    ->setParameter('min', 15)
-                    ->setParameter('max', 40)
-                    ->getQuery()
-                    ->getResult();
-                break;
-            case 'mayor40':
-                $listaLibros = $libroRepository->createQueryBuilder('l')
-                    ->where('l.precio> :precio')
-                    ->setParameter('precio', 40)
-                    ->getQuery()
-                    ->getResult();
-                break;
-            default: return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
+    #[Route('/precio/{ranges}', name: 'libros_by_precio', methods: ['GET'])]
+    public function getLibrosByPrecio(LibroRepository $libroRepository, string $ranges): JsonResponse {
+        $rangesArray = explode(',', $ranges);
+        $queryBuilder = $libroRepository->createQueryBuilder('l');
+
+        $conditions = [];
+        $parameters = [];
+
+        foreach ($rangesArray as $index => $range) {
+            switch ($range) {
+                case 'menor5':
+                    $conditions[] = 'l.precio < :precio' . $index;
+                    $parameters['precio' . $index] = 5;
+                    break;
+                case '5-10':
+                    $conditions[] = 'l.precio BETWEEN :min' . $index . ' AND :max' . $index;
+                    $parameters['min' . $index] = 5;
+                    $parameters['max' . $index] = 10;
+                    break;
+                case '10-15':
+                    $conditions[] = 'l.precio BETWEEN :min' . $index . ' AND :max' . $index;
+                    $parameters['min' . $index] = 10;
+                    $parameters['max' . $index] = 15;
+                    break;
+                case '15-40':
+                    $conditions[] = 'l.precio BETWEEN :min' . $index . ' AND :max' . $index;
+                    $parameters['min' . $index] = 15;
+                    $parameters['max' . $index] = 40;
+                    break;
+                case 'mayor40':
+                    $conditions[] = 'l.precio > :precio' . $index;
+                    $parameters['precio' . $index] = 40;
+                    break;
+                default:
+                    return new JsonResponse(['error' => 'Rango no válido'], Response::HTTP_BAD_REQUEST);
+            }
         }
+
+        if (!empty($conditions)) {
+            $queryBuilder->where(implode(' OR ', $conditions));
+            foreach ($parameters as $key => $value) {
+                $queryBuilder->setParameter($key, $value);
+            }
+        }
+
+        $listaLibros = $queryBuilder->getQuery()->getResult();
+
         return $this->json($listaLibros, Response::HTTP_OK, []);
-
-
     }
 
 
@@ -257,15 +259,34 @@ class LibroController extends AbstractController
 
 
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
-    public function getLibrosByCategoria(LibroRepository $libroRepository, CategoriaRepository $categoriaRepository ,string $id): JsonResponse{
+    public function getLibrosByCategoria(
+        LibroRepository $libroRepository,
+        CategoriaRepository $categoriaRepository,
+        int $id,
+        Request $request // Para obtener los parámetros de consulta
+    ): JsonResponse {
         $categoria = $categoriaRepository->find($id);
-        if(!$categoria){
+        if (!$categoria) {
             return new JsonResponse(['error' => 'Categoría no encontrada'], Response::HTTP_NOT_FOUND);
         }
-        $libros = $libroRepository->findBy(['categoria' => $categoria]);
+
+        // Obtener parámetros de paginación
+        $page = $request->query->getInt('page', 1); // Página por defecto: 1
+        $limit = $request->query->getInt('limit', 9); // Límite por defecto: 9
+
+        // Calcular el offset
+        $offset = ($page - 1) * $limit;
+
+        // Obtener libros paginados
+        $libros = $libroRepository->findBy(
+            ['categoria' => $categoria],
+            [], // Orden (opcional)
+            $limit,
+            $offset
+        );
+
         return $this->json($libros, Response::HTTP_OK, []);
     }
-
 
     #[Route('/search', name: 'search_libros', methods: ['GET'])]
     public function searchLibros(

@@ -60,7 +60,6 @@ class LibroRepository extends ServiceEntityRepository
                 ->setMaxResults($limit);
         }
 
-//        dd($queyBuilder->getQuery()->getSQL());
 
 
         return $queyBuilder->getQuery()->getArrayResult();
@@ -68,42 +67,6 @@ class LibroRepository extends ServiceEntityRepository
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-    //    /**
-    //     * @return Libro[] Returns an array of Libro objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('l')
-    //            ->andWhere('l.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('l.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Libro
-    //    {
-    //        return $this->createQueryBuilder('l')
-    //            ->andWhere('l.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 
     public function findLibrosByFiltro(?int $categoryId, ?int $minPrice, ?int $maxPrice)
     {
