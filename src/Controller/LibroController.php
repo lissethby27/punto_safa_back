@@ -44,14 +44,6 @@ class LibroController extends AbstractController
     }
 
 
-
-
-
-
-
-
-
-
     //Guardar libro en la base de datos
     #[Route('/guardar', name: 'guardar_libro', methods: ['POST'])]
     public function crearLibro(Request $request): JsonResponse
@@ -62,8 +54,8 @@ class LibroController extends AbstractController
 
         // Validar datos
         if (!isset($datosLibro['titulo'], $datosLibro['precio'], $datosLibro['ISBN'], $datosLibro['editorial'],
-            $datosLibro['autor'], $datosLibro['categoria'], $datosLibro['anio_publicacion'],
-            $datosLibro['num_paginas'], $datosLibro['imagen'], $datosLibro['idioma'], $datosLibro['resumen'])) {
+            $datosLibro['autor'], $datosLibro['categoria'], $datosLibro['anioPublicacion'],
+            $datosLibro['numPaginas'], $datosLibro['imagen'], $datosLibro['idioma'], $datosLibro['resumen'])) {
             return new JsonResponse(['mensaje' => 'Faltan datos obligatorios'], 400);
         }
 
@@ -109,15 +101,15 @@ class LibroController extends AbstractController
 
         // Crear una nueva instancia del libro
         $libro = new Libro();
-        $libro->setTitulo($datosLibro['titulo'])
-            ->setResumen($datosLibro['resumen'] ?? null)
-            ->setAnioPublicacion(\DateTime::createFromFormat('Y-m-d', $datosLibro['anio_publicacion']) ?: new \DateTime())
-            ->setPrecio($datosLibro['precio'])
-            ->setISBN($datosLibro['ISBN'])
-            ->setEditorial($datosLibro['editorial'])
-            ->setImagen($datosLibro['imagen'] ?? null)
-            ->setIdioma($datosLibro['idioma'] ?? null)
-            ->setNumPaginas($datosLibro['num_paginas'] ?? null);
+        $libro-> $libro->setTitulo( $datosLibro['titulo']);
+        $libro->setResumen( $datosLibro['resumen']);
+        $libro->setAnioPublicacion(new \DateTime( $datosLibro['anioPublicacion']));
+        $libro->setPrecio( $datosLibro['precio']);
+        $libro->setISBN( $datosLibro['ISBN']);
+        $libro->setEditorial( $datosLibro['editorial']);
+        $libro->setImagen( $datosLibro['imagen']);
+        $libro->setIdioma( $datosLibro['idioma']);
+        $libro->setNumPaginas( $datosLibro['numPaginas']);
 
 
         // Obtener el Autor y Categoria desde el repositorio para asignarlos al libro (si existen)
@@ -129,23 +121,11 @@ class LibroController extends AbstractController
             return new JsonResponse(['mensaje' => 'Autor o categoría no encontrados'], 400);
         }
 
-
         $libro->setAutor($autor);
         $libro->setCategoria($categoria);
-
-
-
-
-
-
-
-
         // Persistir el libro en la base de datos
         $this->entityManager->persist($libro);
         $this->entityManager->flush();
-
-
-
 
         return new JsonResponse(['mensaje' => 'Libro guardado correctamente'], 201);
     }
@@ -435,8 +415,8 @@ class LibroController extends AbstractController
 
 
             // Editar año de publicación (con validación)
-            if (isset($editarLibro['anio_publicacion'])) {
-                $fechaPublicacion = \DateTime::createFromFormat('Y-m-d', $editarLibro['anio_publicacion']);
+            if (isset($editarLibro['anioPublicacion'])) {
+                $fechaPublicacion = \DateTime::createFromFormat('Y-m-d', $editarLibro['anioPublicacion']);
                 if ($fechaPublicacion === false) {
                     return new JsonResponse(['mensaje' => 'Formato de fecha inválido, use YYYY-MM-DD'], 400);
                 }
@@ -478,8 +458,8 @@ class LibroController extends AbstractController
 
 
             // Editar número de páginas
-            if (isset($editarLibro['num_paginas'])) {
-                $libro->setNumPaginas($editarLibro['num_paginas']);
+            if (isset($editarLibro['numPaginas'])) {
+                $libro->setNumPaginas($editarLibro['numPaginas']);
             }
 
 
