@@ -2,6 +2,8 @@
 
 
 namespace App\Controller;
+use App\Entity\Autor;
+use App\Entity\Categoria;
 use App\Entity\Libro;
 use App\Entity\LineaPedido;
 use App\Repository\LibroRepository;
@@ -49,74 +51,51 @@ class LibroController extends AbstractController
     #[Route('/guardar', name: 'guardar_libro', methods: ['POST'])]
     public function crearLibro(Request $request): JsonResponse
     {
-        // Obtener datos del JSON
+
         $datosLibro = json_decode($request->getContent(), true);
 
-
-        // Validar datos
-        if (!isset($datosLibro['titulo'], $datosLibro['precio'], $datosLibro['ISBN'], $datosLibro['editorial'],
-            $datosLibro['autor'], $datosLibro['categoria'], $datosLibro['anioPublicacion'],
-            $datosLibro['numPaginas'], $datosLibro['imagen'], $datosLibro['idioma'], $datosLibro['resumen'])) {
-            return new JsonResponse(['mensaje' => 'Faltan datos obligatorios'], 400);
-        }
-
-
-        //Validar el título no puedde tener más de 255 caracteres
         if (strlen($datosLibro['titulo']) > 255) {
             return new JsonResponse(['mensaje' => 'El título no puede tener más de 255 caracteres'], 400);
         }
 
-
-        // Validar que el precio es un número positivo
         if (!is_numeric($datosLibro['precio']) || $datosLibro['precio'] < 0) {
             return new JsonResponse(['mensaje' => 'El precio debe ser un número positivo'], 400);
         }
 
 
-        // Validar que el año de publicación es una fecha válida
-        if (!\DateTime::createFromFormat('Y-m-d', $datosLibro['anio_publicacion'])) {
+        if (!\DateTime::createFromFormat('Y-m-d', $datosLibro['anioPublicacion'])) {
             return new JsonResponse(['mensaje' => 'Formato de fecha inválido, use YYYY-MM-DD'], 400);
         }
 
-
-
-
-        // Validar el ISBN (longitud y solo números o guiones)
         if (!preg_match('/^\d{10}(\d{3})?$/', str_replace('-', '', $datosLibro['ISBN']))) {
             return new JsonResponse(['mensaje' => 'Formato de ISBN inválido'], 400);
         }
 
-
-        //Validar que el ISB no exista en la base de datos
         $libro = $this->libroRepository->findOneBy(['ISBN' => $datosLibro['ISBN']]);
         if ($libro) {
             return new JsonResponse(['mensaje' => 'El ISBN ya está en uso'], 400);
         }
 
 
-        //Máximo de caracteres en el resumen de 800
         if (strlen($datosLibro['resumen']) > 800) {
             return new JsonResponse(['mensaje' => 'El resumen no puede tener más de 800 caracteres'], 400);
         }
 
-
-        // Crear una nueva instancia del libro
         $libro = new Libro();
-        $libro-> $libro->setTitulo( $datosLibro['titulo']);
-        $libro->setResumen( $datosLibro['resumen']);
-        $libro->setAnioPublicacion(new \DateTime( $datosLibro['anioPublicacion']));
-        $libro->setPrecio( $datosLibro['precio']);
-        $libro->setISBN( $datosLibro['ISBN']);
-        $libro->setEditorial( $datosLibro['editorial']);
-        $libro->setImagen( $datosLibro['imagen']);
-        $libro->setIdioma( $datosLibro['idioma']);
-        $libro->setNumPaginas( $datosLibro['numPaginas']);
+        $libro->setTitulo($datosLibro['titulo'])
+            ->setResumen($datosLibro['resumen'] ?? null)
+            ->setAnioPublicacion(\DateTime::createFromFormat('Y-m-d', $datosLibro['numPaginas']) ?: new \DateTime())
+            ->setPrecio($datosLibro['precio'])
+            ->setISBN($datosLibro['ISBN'])
+            ->setEditorial($datosLibro['editorial'])
+            ->setImagen($datosLibro['imagen'] ?? null)
+            ->setIdioma($datosLibro['idioma'] ?? null)
+            ->setNumPaginas($datosLibro['num_paginas'] ?? null);
 
 
         // Obtener el Autor y Categoria desde el repositorio para asignarlos al libro (si existen)
         $autor = $this->autorRepository->find($datosLibro['autor']);
         $categoria = $this->categoriaRepository->find($datosLibro['categoria']);
-
 
         if (!$autor || !$categoria) {
             return new JsonResponse(['mensaje' => 'Autor o categoría no encontrados'], 400);
@@ -124,7 +103,8 @@ class LibroController extends AbstractController
 
         $libro->setAutor($autor);
         $libro->setCategoria($categoria);
-        // Persistir el libro en la base de datos
+
+
         $this->entityManager->persist($libro);
         $this->entityManager->flush();
 
@@ -132,11 +112,6 @@ class LibroController extends AbstractController
     }
 
 
-
-
-    //Lista de todos los libros existentes en la base de datos
-    //Código optimizado para evitar referencias circulares y mostrar datos relacionados de forma más clara
-    //La idea es que en una misma página no se cargue todos los libros, sino que se paginen, así no es infinita la carga de libros
     #[Route('/all', name: 'all_libros', methods: ['GET'])]
     public function listarLibros(Request $request, LibroRepository $libroRepository): JsonResponse
     {
@@ -530,11 +505,6 @@ class LibroController extends AbstractController
 
         $lineaPedidoRepository = $entityManager->getRepository(LineaPedido::class);
         $lineasPedido = $lineaPedidoRepository->findBy(['libro' => $libro]);
-
-//        if (count($lineasPedido) > 0) {
-//            return new JsonResponse(['mensaje' => 'No se puede eliminar un libro con pedidos activos'], 400);
-//        }
-
 
 
 //        if (!$this->isGranted('ROLE_ADMIN')) {
