@@ -560,7 +560,6 @@ class LibroController extends AbstractController
             // Remove the specific LineaPedido associated with the book
             $entityManager->remove($linea);
         }
-
         $titulo = $libro->getTitulo();
         $entityManager->flush();
 
