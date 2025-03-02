@@ -84,13 +84,13 @@ class LibroController extends AbstractController
         $libro = new Libro();
         $libro->setTitulo($datosLibro['titulo'])
             ->setResumen($datosLibro['resumen'] ?? null)
-            ->setAnioPublicacion(\DateTime::createFromFormat('Y-m-d', $datosLibro['numPaginas']) ?: new \DateTime())
+            ->setAnioPublicacion(\DateTime::createFromFormat('Y-m-d', $datosLibro['anioPublicacion']) ?: new \DateTime())
             ->setPrecio($datosLibro['precio'])
             ->setISBN($datosLibro['ISBN'])
             ->setEditorial($datosLibro['editorial'])
             ->setImagen($datosLibro['imagen'] ?? null)
             ->setIdioma($datosLibro['idioma'] ?? null)
-            ->setNumPaginas($datosLibro['num_paginas'] ?? null);
+            ->setNumPaginas($datosLibro['numPaginas'] ?? null);
 
 
         // Obtener el Autor y Categoria desde el repositorio para asignarlos al libro (si existen)
