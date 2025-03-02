@@ -56,12 +56,11 @@ security:
         - { path: ^/resena/actualizar/\d+, roles: ROLE_CLIENTE }
         - { path: ^/cliente, roles: PUBLIC_ACCESS }
         - { path: ^/cliente/guardar, roles: PUBLIC_ACCESS }
-        - { path: ^/cliente/editar/\d+, roles: ROLE_ADMIN }
+        - { path: ^/api/cliente/editar/\d+, roles: [ROLE_ADMIN, ROLE_CLIENTE] }
         - { path: ^/resena/resenas/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/media-calificacion/\d+, roles: PUBLIC_ACCESS }
         - { path: ^/resena/top-libros, roles: PUBLIC_ACCESS }
-        - { path: ^/libro/filtered-books, roles: PUBLIC_ACCESS }
-
+        - { path: ^/api/cliente/\d+, roles: [ROLE_ADMIN, ROLE_CLIENTE] }
 
 
 

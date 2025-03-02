@@ -19,6 +19,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 
 #[Route('/api')]
@@ -27,10 +29,12 @@ final class UsuarioController extends AbstractController
     private UsuarioRepository $usuarioRepository;
     private EntityManagerInterface $entityManager;
 
+
     public function __construct(UsuarioRepository $usuarioRepository, EntityManagerInterface $entityManager)
     {
         $this->usuarioRepository = $usuarioRepository;
         $this->entityManager = $entityManager;
+
     }
 
 
