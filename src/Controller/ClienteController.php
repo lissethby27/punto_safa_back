@@ -139,6 +139,10 @@ final class ClienteController extends AbstractController
         try {
             // Obtener datos del request
             $json_cliente = json_decode($request->getContent(), true);
+            if (!$json_cliente) {
+                return $this->json(['error' => 'JSON inválido: ' . json_last_error_msg()], 400);
+            }
+
 
             if (!$json_cliente) {
                 return $this->json(['error' => 'El cuerpo de la solicitud no es un JSON válido'], 400);
@@ -162,8 +166,10 @@ final class ClienteController extends AbstractController
             $cliente->setTelefono($json_cliente['telefono']);
 
             // Persistir y guardar cambios
-            $entityManager->persist($cliente);
             $entityManager->flush();
+            error_log("Cliente actualizado con ID: " . $cliente->getId());
+            $entityManager->clear();
+
 
             return $this->json(['mensaje' => 'Datos actualizados correctamente'], 200);
 
@@ -240,6 +246,7 @@ final class ClienteController extends AbstractController
         if (!$token) {
             return $this->json(['error' => 'Token no proporcionado'], 400);
         }
+
 
         $decoded = $jwtManager->decode($token);
 

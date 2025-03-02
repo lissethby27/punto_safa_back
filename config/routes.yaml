@@ -22,3 +22,9 @@ restablecer_contrasena:
     controller: App\Controller\EmailController::restablecerContrasena
     methods: [POST]
 
+    # config/routes.yaml
+editar_usuario:
+    path: /usuario/editar/{id}
+    controller: App\Controller\UsuarioController::editar
+    methods: PUT
+

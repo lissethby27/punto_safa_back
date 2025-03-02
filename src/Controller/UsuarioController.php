@@ -21,7 +21,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[Route('/api')]
 final class UsuarioController extends AbstractController
@@ -182,6 +183,7 @@ final class UsuarioController extends AbstractController
     }
 
 
+
     #[Route('/usuario/editar/{id}', name: 'usuario_editar', methods: ['PUT'])]
     public function editar(int $id, Request $request, EntityManagerInterface $entityManager, UsuarioRepository $usuarioRepository): JsonResponse
     {
@@ -195,20 +197,23 @@ final class UsuarioController extends AbstractController
             return $this->json(['error' => 'Usuario no encontrado'], 404);
         }
 
-        // Verifica que todos los datos requeridos estén presentes
-        if (!isset($json_usuario['nick'], $json_usuario['contrasena'], $json_usuario['rol'], $json_usuario['email'])) {
+        // Verifica que los datos obligatorios estén presentes
+        if (!isset($json_usuario['nick'], $json_usuario['email'], $json_usuario['rol'])) {
             return $this->json(['error' => 'Faltan datos obligatorios'], 400);
         }
 
         // Actualiza los datos del usuario
-        //$usuario->setNick($json_usuario['nick']);
-        $usuario->setContrasena($json_usuario['contrasena']);
-        //$usuario->setRol($json_usuario['rol']);
+        $usuario->setNick($json_usuario['nick']);
         $usuario->setEmail($json_usuario['email']);
+        $usuario->setRol($json_usuario['rol']);
+
+        // Actualiza la contraseña solo si se proporciona
+        if (isset($json_usuario['contrasena']) && !empty($json_usuario['contrasena'])) {
+            $usuario->setContrasena($json_usuario['contrasena']);
+        }
 
         // Guarda los cambios en la base de datos
         $entityManager->flush();
-
 
         return $this->json(['mensaje' => 'Datos actualizados correctamente']);
     }
