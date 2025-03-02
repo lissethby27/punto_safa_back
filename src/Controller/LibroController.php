@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 use App\Entity\Libro;
+use App\Entity\LineaPedido;
 use App\Repository\LibroRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -523,39 +524,47 @@ class LibroController extends AbstractController
     {
         $libro = $entityManager->getRepository(Libro::class)->find($id);
 
-
         if (!$libro) {
             return new JsonResponse(['mensaje' => 'Libro no encontrado, inténtelo de nuevo'], 404);
         }
 
+        $lineaPedidoRepository = $entityManager->getRepository(LineaPedido::class);
+        $lineasPedido = $lineaPedidoRepository->findBy(['libro' => $libro]);
 
-        $lineasPedido = $libro->getLineaPedidos();
-        if (count($lineasPedido) > 0) {
-            return new JsonResponse(['mensaje' => 'No se puede eliminar un libro con pedidos activos'], 400);
-        }
+//        if (count($lineasPedido) > 0) {
+//            return new JsonResponse(['mensaje' => 'No se puede eliminar un libro con pedidos activos'], 400);
+//        }
+
 
 
 //        if (!$this->isGranted('ROLE_ADMIN')) {
 //            return new JsonResponse(['mensaje' => 'No tienes permisos para realizar esta acción'], 403);
 //        }
 
+        // If there are no line items, proceed to delete the book
+        if (count($lineasPedido) == 0) {
+            $titulo = $libro->getTitulo();
+            $entityManager->remove($libro);
+            $entityManager->flush();
+            return new JsonResponse(['mensaje' => "Libro '$titulo' eliminado correctamente"], 200);
+        }
 
+        foreach ($lineasPedido as $linea) {
+            $pedido = $linea->getPedido();  // Get the associated Pedido (order)
 
+            // If this is the only LineaPedido in the Pedido, delete the entire Pedido
+            if (count($pedido->getLineaPedidos()) == 1) {
+                $entityManager->remove($pedido);  // Remove the entire order if it's the last line item
+            }
 
-
-
-
-
-
+            // Remove the specific LineaPedido associated with the book
+            $entityManager->remove($linea);
+        }
 
         $titulo = $libro->getTitulo();
-        $entityManager->remove($libro);
         $entityManager->flush();
 
-
         return new JsonResponse(['mensaje' => "Libro '$titulo' eliminado correctamente"], 200);
-
-
     }
 
 
