@@ -104,7 +104,6 @@ class LibroController extends AbstractController
         $libro->setAutor($autor);
         $libro->setCategoria($categoria);
 
-
         $this->entityManager->persist($libro);
         $this->entityManager->flush();
 
