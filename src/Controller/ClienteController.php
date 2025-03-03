@@ -31,24 +31,46 @@ final class ClienteController extends AbstractController
     }
 
 
+    /**
+     *
+     * Obtiene todos los clientes
+     *
+     * @param ClienteRepository $clienteRepository
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/all', name: 'app_cliente', methods: ['GET'])]
     public function getCliente(ClienteRepository $clienteRepository, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
+        // Obtener todos los clientes
         $clientes = $clienteRepository->findAll();
 
+        // Si no hay clientes, devolver un error
         if (empty($clientes)) {
             return $this->json(['error' => 'No se encontraron clientes'], 404);
         }
 
+        // Serializar la respuesta
         $json = $serializer->serialize($clientes, 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             },
         ]);
 
+        // Devolver la respuesta
         return new JsonResponse($json, 200, [], true);
     }
 
+
+    /**
+     *
+     * Obtiene un cliente por su ID
+     *
+     * @param Cliente $cliente
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
     public function getById(Cliente $cliente, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -71,6 +93,14 @@ final class ClienteController extends AbstractController
         return new JsonResponse($json, 200, [], true);
     }
 
+    /**
+     *
+     * Guardar un nuevo cliente.
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
     #[Route('/guardar', name: 'guardar', methods: ['POST'])]
     public function crearCliente(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -129,6 +159,17 @@ final class ClienteController extends AbstractController
 
 
 
+
+    /**
+     *
+     * Editar un cliente por su ID
+     *
+     * @param int $id
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param ClienteRepository $clienteRepository
+     * @return JsonResponse
+     */
     #[Route('/editar/{id}', name: 'editar', methods: ['PUT'])]
     public function editar(
         int $id,
@@ -143,7 +184,7 @@ final class ClienteController extends AbstractController
                 return $this->json(['error' => 'JSON inválido: ' . json_last_error_msg()], 400);
             }
 
-
+            // Buscar el cliente por ID
             if (!$json_cliente) {
                 return $this->json(['error' => 'El cuerpo de la solicitud no es un JSON válido'], 400);
             }
@@ -151,6 +192,7 @@ final class ClienteController extends AbstractController
             // Buscar el cliente por ID
             $cliente = $clienteRepository->find($id);
 
+            // Si no se encuentra el cliente, devolver un error
             if (!$cliente) {
                 return $this->json(['error' => 'Cliente no encontrado'], 404);
             }
@@ -170,45 +212,85 @@ final class ClienteController extends AbstractController
             error_log("Cliente actualizado con ID: " . $cliente->getId());
             $entityManager->clear();
 
-
+            // Devolver respuesta
             return $this->json(['mensaje' => 'Datos actualizados correctamente'], 200);
 
+            // Capturar excepciones
         } catch (\Exception $e) {
+
+            // Devolver error
             return $this->json(['error' => 'Error al guardar: ' . $e->getMessage()], 500);
         }
     }
 
 
+    /**
+     *
+     * Obtener clientes por nombre.
+     *
+     * @param string $nombre
+     * @param ClienteRepository $clienteRepository
+     * @return JsonResponse
+     */
     #[Route('/buscar/{nombre}', name: 'buscar_por_nombre', methods: ['GET'])]
     public function buscarPorNombre(string $nombre, ClienteRepository $clienteRepository): JsonResponse
     {
+        // Buscar clientes por nombre
         $clientes = $clienteRepository->buscarPorNombreParcial($nombre);
 
+        // Si no se encuentran clientes, devolver un error
         if (!$clientes) {
             return $this->json(['error' => 'No se encontraron clientes con ese nombre'], 404);
         }
 
+
+        // Serializar la respuesta
         $json = $this->serializer->serialize($clientes, 'json', [
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
+        // Devolver la respuesta
         return new JsonResponse($json, 200, [], true);
     }
+
+    /**
+     *
+     * Eliminar un cliente por su ID
+     *
+     * @param int $id
+     * @param ClienteRepository $clienteRepository
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
 
     #[Route('/{id}', name: 'cliente_delete_by_id', methods: ['DELETE'])]
     public function deleteById(int $id, ClienteRepository $clienteRepository, EntityManagerInterface $entityManager): JsonResponse
     {
+        // Buscar el cliente por ID
         $cliente = $clienteRepository->find($id);
 
+        // Si no se encuentra el cliente, devolver un error
         if (!$cliente) {
             return $this->json(['error' => 'Autor no encontrado'], 404);
         }
 
+        // Eliminar el cliente
         $entityManager->remove($cliente);
         $entityManager->flush();
 
+
+        // Devolver respuesta
         return $this->json(['mensaje' => 'Datos eliminados correctamente']);
     }
+
+    /**
+     *
+     * Obtener el usuario autenticado
+     *
+     * @param ClienteRepository $clienteRepository
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
 
     #[Route('/auth/user', name: 'auth_user', methods: ['GET'])]
     public function getAuthenticatedUser(ClienteRepository $clienteRepository, SerializerInterface $serializer): JsonResponse
@@ -216,13 +298,15 @@ final class ClienteController extends AbstractController
         // Obtener el usuario autenticado
         $usuario = $this->getUser();
 
+        // Si el usuario no está autenticado, devolver un error
         if (!$usuario instanceof UserInterface) {
             return $this->json(['error' => 'Usuario no autenticado'], Response::HTTP_UNAUTHORIZED);
         }
 
         // Obtener el cliente asociado al usuario usando el método personalizado en el repositorio
-        $cliente = $clienteRepository->findOneByUsuario($usuario);  // Aquí se usa el método
+        $cliente = $clienteRepository->findOneByUsuario($usuario);
 
+        // Si no se encuentra el cliente, devolver un error
         if (!$cliente) {
             return $this->json(['error' => 'No se encontró cliente asociado a este usuario'], Response::HTTP_NOT_FOUND);
         }
@@ -232,28 +316,39 @@ final class ClienteController extends AbstractController
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
+        // Devolver la respuesta
         return new JsonResponse($json, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @throws JWTDecodeFailureException
+     *
+     * Decodificar un token JWT
+     *
+     * @param Request $request
+     * @param JWTTokenManagerInterface $jwtManager
+     * @return JsonResponse
      */
     #[Route('/api/cliente/token-decode', name: 'decode_cliente_token', methods: ['POST'])]
     public function decodeToken(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
+        // Obtener el token de la petición
         $token = $request->request->get('token'); // Token enviado en la petición
 
+        // Si no se proporciona un token, devolver un error
         if (!$token) {
             return $this->json(['error' => 'Token no proporcionado'], 400);
         }
 
-
+        // Decodificar el token
         $decoded = $jwtManager->decode($token);
 
+        // Si el token no es válido, devolver un error
         if (!$decoded) {
             return $this->json(['error' => 'Token inválido'], 400);
         }
 
+
+        // Devolver la respuesta
         return $this->json($decoded);
     }
 

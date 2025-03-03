@@ -9,6 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ApiController extends AbstractController
 {
+
     #[Route('/api/', methods: ['OPTIONS'])]
     public function options(): Response
     {

@@ -12,11 +12,21 @@ use Symfony\Component\Serializer\SerializerInterface;
 final class LineaPedidoController extends AbstractController
 {
 
+    /**
+     *
+     * Obtiene todas las lineas de pedido
+     *
+     * @param LineaPedidoRepository $lineaPedidoRepository
+     * @param SerializerInterface $serializer
+     * @return Response
+     */
     #[Route('/all', name: 'get_all_lineaPedidos', methods: ['GET'])]
     public function getAll(LineaPedidoRepository $lineaPedidoRepository, SerializerInterface $serializer): Response
     {
+        // Obtenemos todas las lineas de pedido
         $lineaPedidos = $lineaPedidoRepository->findAll();
 
+        // Serializamos el resultado
         $jsonContent = $serializer->serialize($lineaPedidos, 'json');
 
         return new Response($jsonContent, Response::HTTP_OK, [], true);
