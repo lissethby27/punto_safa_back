@@ -1,42 +1,46 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+# Archivos de configuración sensibles
+.env
+/.env.*.local
+/.env.local.php
+/composer.lock
 
-# Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
+# Archivos de configuración de bases de datos
+/config/secrets/*
 
-# Node
-/node_modules
-npm-debug.log
-yarn-error.log
+# Archivos de claves privadas
+config/jwt/*.pem
 
-# IDEs and editors
-.idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+# Archivos de caché y logs
+/var/
+/logs/
+/cache/
 
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.history/*
+# Archivos de dependencias
+/vendor/
+/node_modules/
 
-# Miscellaneous
-/.angular/cache
-.sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
-/typings
+# Archivos de IDEs y editores
+/.idea/
+/.vscode/
+/*.sublime-project
+/*.sublime-workspace
 
-# System files
+# Archivos de sistema operativo
 .DS_Store
 Thumbs.db
+
+# Archivos de PHPUnit
+/phpunit.xml
+.phpunit.result.cache
+
+# Archivos de cobertura de código
+/coverage/
+/.clover
+/.coverage
+/.nyc_output
+/coverage-final.json
+
+# Archivos de despliegue
+/.build/
+
+tests/
