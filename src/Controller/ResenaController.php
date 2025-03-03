@@ -42,12 +42,20 @@ class ResenaController extends AbstractController
         $this->jwsProvider = $jwsProvider;
     }
 
+    /**
+     *
+     * Método para crear una nueva reseña de un libro por un usuario autenticado y verificar si el usuario ha comprado el libro.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     #[Route('/nueva', name: 'app_resena_nuevaresena', methods: ['POST'])]
     public function nuevaResena(Request $request): JsonResponse
     {
         // Obtener el token del encabezado de autorización
         $token = $request->headers->get('Authorization');
 
+        // Verificar si el token no está presente o no comienza con 'Bearer '
         if (!$token || !str_starts_with($token, 'Bearer ')) {
             return new JsonResponse(['mensaje' => 'Token no proporcionado.'], Response::HTTP_UNAUTHORIZED);
         }
@@ -59,6 +67,8 @@ class ResenaController extends AbstractController
             // Decodificar el token usando JWSProviderInterface
             $jws = $this->jwsProvider->load($token);
 
+
+            // Verificar si el token es válido
             if (!$jws->isVerified()) {
                 return new JsonResponse(['mensaje' => 'Token inválido.'], Response::HTTP_UNAUTHORIZED);
             }
@@ -147,11 +157,19 @@ class ResenaController extends AbstractController
         }
     }
 
+
     /**
-     * Verifica si un cliente ha comprado un libro.
+     *
+     * Verificar si el cliente ha comprado el libro.
+     *
+     * @param int $clienteId
+     * @param int $libroId
+     * @return bool
+     *
      */
     private function verificarCompra(int $clienteId, int $libroId): bool
     {
+        // Crear una consulta para verificar si el cliente ha comprado el libro
         $query = $this->entityManager->createQuery(
             'SELECT COUNT(lp.id) 
          FROM App\Entity\LineaPedido lp
@@ -169,7 +187,15 @@ class ResenaController extends AbstractController
         return $query->getSingleScalarResult() > 0;
     }
 
-    // Método para actualizar una reseña
+
+    /**
+     *
+     * Método para actualizar una reseña.
+     *
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse
+     */
     #[Route("/actualizar/{id}", name: "actualizar_resena", methods: ["PUT"])]
     public function editar(int $id, Request $request): JsonResponse
     {
@@ -196,12 +222,22 @@ class ResenaController extends AbstractController
         return new JsonResponse(['mensaje' => 'Reseña actualizada.'], Response::HTTP_OK);
     }
 
-    // Método para ver las reseñas de un libro
+
+
+    /**
+     *
+     * Método para mostrar todas las reseñas de un libro.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+
     #[Route("/resenas/{id_libro}", name: "mostrar_resenas_libro", methods: ["GET"])]
     public function mostrarResenasPorLibro(int $id_libro): JsonResponse
     {
         $resenas = $this->resenaRepository->findBy(['libro' => $id_libro]);
 
+        // Verificar si no hay reseñas para este libro
         if (!$resenas) {
             return new JsonResponse(['mensaje' => 'No hay reseñas para este libro.'], Response::HTTP_OK);
         }
@@ -221,12 +257,21 @@ class ResenaController extends AbstractController
         return new JsonResponse($resenasArray, Response::HTTP_OK);
     }
 
-    // Método para calcular la media de calificaciones de un libro
+
+    /**
+     *
+     * Realizar la media de las calificaciones de un libro a través de su ID, tomando en cuenta todas las reseñas.
+     *
+     * @param int $id_libro
+     * @return JsonResponse
+     */
     #[Route("/media-calificacion/{id_libro}", name: "media_calificacion_libro", methods: ["GET"])]
     public function mediaCalificacionPorLibro(int $id_libro): JsonResponse
     {
-        $media = $this->resenaRepository->calcularMediaCalificacionPorLibro($id_libro);
 
+        // Calcular la media de calificación de un libro
+        $media = $this->resenaRepository->calcularMediaCalificacionPorLibro($id_libro);
+        // Verificar si no hay reseñas para este libro
         if ($media === null) {
             return new JsonResponse(['mensaje' => 'No hay reseñas para este libro.'], Response::HTTP_OK);
         }
@@ -234,21 +279,33 @@ class ResenaController extends AbstractController
         return new JsonResponse(['mediaCalificacion' => $media], Response::HTTP_OK);
     }
 
-    // Método para obtener los libros mejor calificados
+
+    /**
+     *
+     * Obtenemos los libros mejor calificados, concretamente los 3 libros con la media de calificación más alta.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     #[Route("/top-libros", name: "top_libros", methods: ["GET"])]
     public function topLibros(Request $request): JsonResponse
     {
+        // Obtener el límite de libros a mostrar
         $limit = $request->query->getInt('limit', 3);
 
+        // Verificar si el límite es un número positivo
         if ($limit <= 0) {
             return new JsonResponse(['mensaje' => 'El límite debe ser un número positivo.'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Obtener los libros mejor calificados
         $topLibros = array_map(function ($libro) {
             $libro['mediaCalificacion'] = number_format((float)$libro['mediaCalificacion'], 1, '.', '');
             return $libro;
         }, $this->resenaRepository->findTopRatedBooks($limit));
 
+
+        // Verificar si no hay libros mejor calificados
         return new JsonResponse($topLibros, Response::HTTP_OK);
     }
 }

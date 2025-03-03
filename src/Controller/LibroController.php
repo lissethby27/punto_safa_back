@@ -47,40 +47,51 @@ class LibroController extends AbstractController
     }
 
 
-    //Guardar libro en la base de datos
+    /**
+     *
+     * Crear un nuevo libro.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     #[Route('/guardar', name: 'guardar_libro', methods: ['POST'])]
     public function crearLibro(Request $request): JsonResponse
     {
-
+        // Decodificar el JSON del request
         $datosLibro = json_decode($request->getContent(), true);
 
+        // Validar los datos del libro
         if (strlen($datosLibro['titulo']) > 255) {
             return new JsonResponse(['mensaje' => 'El título no puede tener más de 255 caracteres'], 400);
         }
 
+        // Validar que el precio sea un número positivo
         if (!is_numeric($datosLibro['precio']) || $datosLibro['precio'] < 0) {
             return new JsonResponse(['mensaje' => 'El precio debe ser un número positivo'], 400);
         }
 
-
+        // Validar que la fecha de publicación tenga el formato correcto
         if (!\DateTime::createFromFormat('Y-m-d', $datosLibro['anioPublicacion'])) {
             return new JsonResponse(['mensaje' => 'Formato de fecha inválido, use YYYY-MM-DD'], 400);
         }
 
+        // Validar el formato del ISBN
         if (!preg_match('/^\d{10}(\d{3})?$/', str_replace('-', '', $datosLibro['ISBN']))) {
             return new JsonResponse(['mensaje' => 'Formato de ISBN inválido'], 400);
         }
 
+        // Validar que el ISBN no esté en uso
         $libro = $this->libroRepository->findOneBy(['ISBN' => $datosLibro['ISBN']]);
         if ($libro) {
             return new JsonResponse(['mensaje' => 'El ISBN ya está en uso'], 400);
         }
 
-
+        // Validar que el resumen no tenga más de 800 caracteres
         if (strlen($datosLibro['resumen']) > 800) {
             return new JsonResponse(['mensaje' => 'El resumen no puede tener más de 800 caracteres'], 400);
         }
 
+        // Crear un nuevo libro con los datos proporcionados
         $libro = new Libro();
         $libro->setTitulo($datosLibro['titulo'])
             ->setResumen($datosLibro['resumen'] ?? null)
@@ -97,19 +108,31 @@ class LibroController extends AbstractController
         $autor = $this->autorRepository->find($datosLibro['autor']);
         $categoria = $this->categoriaRepository->find($datosLibro['categoria']);
 
+        // Validar que el Autor y la Categoria existan
         if (!$autor || !$categoria) {
             return new JsonResponse(['mensaje' => 'Autor o categoría no encontrados'], 400);
         }
 
+        // Asignar el Autor y la Categoria al libro
         $libro->setAutor($autor);
         $libro->setCategoria($categoria);
 
+        // Guardar el libro en la base de datos
         $this->entityManager->persist($libro);
         $this->entityManager->flush();
 
         return new JsonResponse(['mensaje' => 'Libro guardado correctamente'], 201);
     }
 
+
+    /**
+     *
+     * Listar todos los libros.
+     *
+     * @param Request $request
+     * @param LibroRepository $libroRepository
+     * @return JsonResponse
+     */
 
     #[Route('/all', name: 'all_libros', methods: ['GET'])]
     public function listarLibros(Request $request, LibroRepository $libroRepository): JsonResponse
@@ -130,10 +153,10 @@ class LibroController extends AbstractController
             ->setFirstResult($limit * ($page - 1))
             ->setMaxResults($limit);
 
-
+        // Convertir el paginador a un array
         $listaLibros = iterator_to_array($paginator);
 
-
+        // Serializar los libros a JSON y devolverlos como respuesta HTTP
         $jsonLibros = $this->serializer->serialize($listaLibros, 'json', [
             AbstractNormalizer::CALLBACKS => [
                 'categoria' => fn($innerObject) => $innerObject ? $innerObject->getNombre() : null,
@@ -158,14 +181,27 @@ class LibroController extends AbstractController
     }
 
 
+    /**
+     *
+     * Buscar libros por rango de precios.
+     *
+     * @param LibroRepository $libroRepository
+     * @param string $ranges
+     * @return JsonResponse
+     */
+
     #[Route('/precio/{ranges}', name: 'libros_by_precio', methods: ['GET'])]
     public function getLibrosByPrecio(LibroRepository $libroRepository, string $ranges): JsonResponse {
+        // Convertir la cadena de rangos en un array
         $rangesArray = explode(',', $ranges);
         $queryBuilder = $libroRepository->createQueryBuilder('l');
 
+        // Crear condiciones y parámetros para cada rango
         $conditions = [];
         $parameters = [];
 
+
+        // Iterar sobre cada rango y agregar la condición correspondiente
         foreach ($rangesArray as $index => $range) {
             switch ($range) {
                 case 'menor5':
@@ -196,6 +232,7 @@ class LibroController extends AbstractController
             }
         }
 
+        // Agregar las condiciones al QueryBuilder
         if (!empty($conditions)) {
             $queryBuilder->where(implode(' OR ', $conditions));
             foreach ($parameters as $key => $value) {
@@ -203,15 +240,23 @@ class LibroController extends AbstractController
             }
         }
 
+        // Ejecutar la consulta y devolver los resultados
         $listaLibros = $queryBuilder->getQuery()->getResult();
 
         return $this->json($listaLibros, Response::HTTP_OK, []);
     }
 
 
-
-
-
+    /**
+     *
+     * Buscar libros por categoría.
+     *
+     * @param LibroRepository $libroRepository
+     * @param CategoriaRepository $categoriaRepository
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse
+     */
 
     #[Route('/categoria/{id}', name: 'libros_by_categoria', methods: ['GET'])]
     public function getLibrosByCategoria(
@@ -243,15 +288,28 @@ class LibroController extends AbstractController
         return $this->json($libros, Response::HTTP_OK, []);
     }
 
+
+    /**
+     *
+     * Buscar libros por autor.
+     *
+     * @param LibroRepository $libroRepository
+     * @param AutorRepository $autorRepository
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse
+     */
+
     #[Route('/search', name: 'search_libros', methods: ['GET'])]
     public function searchLibros(
         Request $request,
         LibroRepository $libroRepository
     ): JsonResponse {
-        // Get the search query from the request
+
+        // Obtener el término de búsqueda
         $query = $request->query->get('q');
 
-
+        // Validar que se haya proporcionado un término de búsqueda
         if (!$query) {
             return new JsonResponse(['error' => 'Debe proporcionar un término de búsqueda'], Response::HTTP_BAD_REQUEST);
         }
@@ -270,9 +328,18 @@ class LibroController extends AbstractController
 
         return $this->json($libros, JsonResponse::HTTP_OK, []);
 
-
     }
 
+
+    /**
+     *
+     * Filtrar libros por categoría y rango de precios.
+     *
+     * @param Request $request
+     * @param LibroRepository $libroRepository
+     * @param CategoriaRepository $categoriaRepository
+     * @return JsonResponse
+     */
 
 
     #[Route('/filtered-books', name: 'filtered_books', methods: ['GET'])]
@@ -289,6 +356,7 @@ class LibroController extends AbstractController
         $minPrice = null;
         $maxPrice = null;
 
+        // Validar que la categoría exista
         if($priceRanges){
             switch ($priceRanges) {
                 case 'menor5':
@@ -314,6 +382,7 @@ class LibroController extends AbstractController
             }
         }
 
+       // Validar que la categoría exista
         $libros = $libroRepository->findLibrosByFiltro($categoryId, $minPrice, $maxPrice);
 
 

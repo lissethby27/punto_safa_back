@@ -17,12 +17,21 @@ class AdmController extends AbstractController
 {
     private $serializer;
 
+
+    /**
+     *
+     * Obtiene la información del usuario autenticado con rol de administrador y la devuelve en formato JSON.
+     *
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/auth/user', name: 'admin_auth_user', methods: ['GET'])]
     public function getAuthenticatedAdmin(SerializerInterface $serializer): JsonResponse
     {
         // Obtener el usuario autenticado
         $usuario = $this->getUser();
 
+        // Verificar que el usuario esté autenticado
         if (!$usuario instanceof UserInterface) {
             return new JsonResponse(['error' => 'Usuario no autenticado'], Response::HTTP_UNAUTHORIZED);
         }
@@ -37,9 +46,17 @@ class AdmController extends AbstractController
             'circular_reference_handler' => fn($object) => $object->getId(),
         ]);
 
+        // Devolver la información del administrador en formato JSON
         return new JsonResponse($json, Response::HTTP_OK, [], true);
     }
 
+
+    /**
+     * Obtiene el id de un cliente y devuelve la información del cliente en formato JSON.
+     * @param Cliente $cliente
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
     public function getById(Cliente $cliente, EntityManagerInterface $entityManager): JsonResponse
     {

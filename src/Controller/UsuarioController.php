@@ -10,6 +10,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,6 +40,17 @@ final class UsuarioController extends AbstractController
     }
 
 
+    /**
+     *
+     * El método registro() se encarga de registrar un nuevo usuario y cliente en la base de datos.
+     *
+     * @param Request $request
+     * @param UserPasswordHasherInterface $userPasswordHasher
+     * @param EntityManagerInterface $entityManager
+     * @param MailerInterface $mailer
+     * @return JsonResponse
+     * @throws TransportExceptionInterface
+     */
     #[Route('/registro', name: 'app_usuario', methods: ['POST'])]
     public function registro(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager, MailerInterface $mailer): JsonResponse
     {
@@ -56,7 +68,7 @@ final class UsuarioController extends AbstractController
             }
         }
 
-        // Validar la contraseña
+        // Validar todas las entradas. Si alguna falla, se lanzará una excepción.
         $password = $body['contrasena'];
         if (strlen($password) < 8 || strlen($password) > 32) {
             return $this->json(['error' => 'La contraseña debe tener entre 8 y 32 caracteres'], 400);
@@ -102,7 +114,7 @@ final class UsuarioController extends AbstractController
         // Crear un token de activación
         $token = base64_encode($body['email']); // Codificar email
         $token = rtrim(strtr($token, '+/', '-_'), '='); // Hacerlo URL-safe
-// Hacerlo seguro para URLs
+        // Hacerlo seguro para URLs
 
         // Crear el cliente asociado al usuario
         $nuevo_cliente = new Cliente();
@@ -137,7 +149,13 @@ final class UsuarioController extends AbstractController
     }
 
 
-
+    /**
+     *
+     * Este métetodo se encarga de activar la cuenta de un usuario.
+     *
+     * @param string $token
+     * @return Response
+     */
     #[Route('/activar/{token}', name: 'activar_cuenta', methods: ['GET'])]
     public function activarCuenta(string $token): Response
     {
@@ -167,12 +185,21 @@ final class UsuarioController extends AbstractController
     }
 
 
-
+    /**
+     *
+     * Obtenemos todos los usuarios registrados en la base de datos.
+     *
+     * @param UsuarioRepository $usuarioRepository
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('usuario/all', name: 'all', methods: ['GET'])]
     public function getUsuarios(UsuarioRepository $usuarioRepository, SerializerInterface $serializer): JsonResponse
     {
+        // Obtener todos los usuarios
         $usuarios = $usuarioRepository->findAll();
 
+        // Serializar los usuarios a JSON
         $json = $serializer->serialize($usuarios, 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
@@ -183,7 +210,16 @@ final class UsuarioController extends AbstractController
     }
 
 
-
+    /**
+     *
+     * Editar los datos de un usuario.
+     *
+     * @param int $id
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param UsuarioRepository $usuarioRepository
+     * @return JsonResponse
+     */
     #[Route('/usuario/editar/{id}', name: 'usuario_editar', methods: ['PUT'])]
     public function editar(int $id, Request $request, EntityManagerInterface $entityManager, UsuarioRepository $usuarioRepository): JsonResponse
     {
@@ -218,6 +254,15 @@ final class UsuarioController extends AbstractController
         return $this->json(['mensaje' => 'Datos actualizados correctamente']);
     }
 
+    /**
+     *
+     * Eliminar un usuario por su ID.
+     *
+     * @param int $id
+     * @param UsuarioRepository $usuarioRepository
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
     #[Route('/usuario/{id}', name: 'usuario_delete_by_id', methods: ['DELETE'])]
     public function deleteById(int $id, UsuarioRepository $usuarioRepository, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -238,6 +283,14 @@ final class UsuarioController extends AbstractController
     }
 
 
+    /**
+     *
+     * Obtener los datos del usuario autenticado.
+     *
+     * @param UsuarioRepository $usuarioRepository
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/admin-data', name: 'admin_data', methods: ['GET'])]
     public function getAdminData(UsuarioRepository $usuarioRepository, SerializerInterface $serializer): JsonResponse
     {
@@ -260,6 +313,14 @@ final class UsuarioController extends AbstractController
         return new JsonResponse($json, 200, [], true);
     }
 
+    /**
+     *
+     * Obtener el correo de un usuario por su 'nick'.
+     *
+     * @param string $nick
+     * @param UsuarioRepository $usuarioRepository
+     * @return JsonResponse
+     */
     #[Route('/usuario/{nick}', methods: ['GET'])]
     public function obtenerCorreo(string $nick, UsuarioRepository $usuarioRepository): JsonResponse
     {
@@ -278,19 +339,28 @@ final class UsuarioController extends AbstractController
 
 
     /**
-     * @throws JWTDecodeFailureException
+     *
+     * Obtener el token de autenticación del usuario.
+     *
+     * @param JWTTokenManagerInterface $jwtManager
+     * @return JsonResponse
      */
+
     #[Route('/api/usuario/token-decode', name: 'decode_token', methods: ['GET'])]
     public function decodeToken(JWTTokenManagerInterface $jwtManager): JsonResponse
     {
+        // Obtener el usuario autenticado
         $user = $this->getUser(); // Obtiene el usuario autenticado
 
+        // Si el usuario no está autenticado, devolver un error
         if (!$user) {
             return $this->json(['error' => 'No autenticado'], 401);
         }
 
+        // Decodificar el token
         $tokenData = $jwtManager->decode($this->get('security.token_storage')->getToken());
 
+        // Retornar los datos del token
         return $this->json($tokenData);
     }
 

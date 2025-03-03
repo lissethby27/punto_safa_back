@@ -21,6 +21,13 @@ final class AutorController extends AbstractController
         $this->serializer = $serializer;
     }
 
+
+    /**
+     * Obtener todos los autores.
+     *
+     * @param AutorRepository $autorRepository
+     * @return JsonResponse
+     */
     #[Route('/all', name: 'app_autor', methods: ['GET'])]
     public function getAutor(AutorRepository $autorRepository): JsonResponse
     {
@@ -44,7 +51,14 @@ final class AutorController extends AbstractController
     }
 
 
-
+    /**
+     *
+     * Obtener un autor por su ID.
+     *
+     * @param int $id
+     * @param AutorRepository $autorRepository
+     * @return JsonResponse
+     */
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
     public function getById(int $id, AutorRepository $autorRepository): JsonResponse
     {
@@ -62,9 +76,13 @@ final class AutorController extends AbstractController
     }
 
 
-
-
-
+    /**
+     * Crear un nuevo autor.
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
     #[Route('/guardar', name: 'guardar', methods: ['POST'])]
     public function crearAutor(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -93,6 +111,15 @@ final class AutorController extends AbstractController
     }
 
 
+    /**
+     * Editar los datos de un autor.
+     *
+     * @param int $id
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param AutorRepository $autorRepository
+     * @return JsonResponse
+     */
     #[Route('/editar/{id}', name: 'editar', methods: ['PUT'])]
     public function editar(int $id, Request $request, EntityManagerInterface $entityManager, AutorRepository $autorRepository): JsonResponse
     {
@@ -130,6 +157,15 @@ final class AutorController extends AbstractController
         return $this->json(['mensaje' => 'Datos actualizados correctamente']);
     }
 
+
+    /**
+     * Buscar autores por su nombre.
+     *
+     * @param string $nombre
+     * @param AutorRepository $autorRepository
+     * @return JsonResponse
+     */
+
     #[Route('/buscar/{nombre}', name: 'buscar_por_nombre', methods: ['GET'])]
     public function buscarPorNombre(string $nombre, AutorRepository $autorRepository): JsonResponse
     {
@@ -147,9 +183,15 @@ final class AutorController extends AbstractController
     }
 
 
-
-
-
+    /**
+     *
+     * Eliminar un autor por su ID.
+     *
+     * @param int $id
+     * @param AutorRepository $autorRepository
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
     #[Route('/{id}', name: 'autor_delete_by_id', methods: ['DELETE'])]
     public function deleteById(int $id, AutorRepository $autorRepository, EntityManagerInterface $entityManager): JsonResponse
     {

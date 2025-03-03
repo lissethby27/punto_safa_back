@@ -6,10 +6,12 @@ use App\Entity\Usuario;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Random\RandomException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -18,6 +20,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EmailController extends AbstractController
 {
+    /**
+     *
+     * Envía un correo electrónico al usuario con el mensaje proporcionado.
+     *
+     * @param Request $request
+     * @param MailerInterface $mailer
+     * @param LoggerInterface $logger
+     * @return JsonResponse
+     * @throws TransportExceptionInterface
+     */
     #[Route('/api/enviar-correo', name: 'enviar_correo', methods: ['POST'])]
     public function enviarCorreo(Request $request, MailerInterface $mailer, LoggerInterface $logger): JsonResponse
     {
@@ -31,10 +43,12 @@ class EmailController extends AbstractController
                 return new JsonResponse(['error' => 'El campo nombre es obligatorio'], Response::HTTP_BAD_REQUEST);
             }
 
+            // Validar el correo electrónico
             if (!isset($data['correo']) || !filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) {
                 return new JsonResponse(['error' => 'El correo electrónico no es válido'], Response::HTTP_BAD_REQUEST);
             }
 
+            // Validar el mensaje
             if (!isset($data['mensaje']) || empty(trim($data['mensaje']))) {
                 return new JsonResponse(['error' => 'El campo mensaje es obligatorio'], Response::HTTP_BAD_REQUEST);
             }
@@ -68,16 +82,28 @@ class EmailController extends AbstractController
         }
     }
 
+    /**
+     *
+     * Envía un correo electrónico al usuario con un enlace para restablecer su contraseña.
+     *
+     * @param Request $request
+     * @param SessionInterface $session
+     * @param MailerInterface $mailer
+     * @return JsonResponse
+     * @throws TransportExceptionInterface
+     * @throws RandomException
+     */
     #[Route('/api/recuperar-contrasena', name: 'recuperar_contrasena', methods: ['POST'])]
     public function recuperarContrasena(Request $request, SessionInterface $session, MailerInterface $mailer): JsonResponse
     {
+        // Decodificar JSON del request
         $body = json_decode($request->getContent(), true);
 
         // Validar que el correo esté presente
         if (!isset($body['email']) || empty($body['email'])) {
             return $this->json(['error' => 'El campo email es obligatorio'], 400);
         }
-
+        // Obtener el correo electrónico del cuerpo de la solicitud
         $email = $body['email'];
 
         // Aquí deberías validar que el correo esté registrado, sin necesidad de modificar la base de datos
@@ -98,11 +124,24 @@ class EmailController extends AbstractController
             ->to($email)
             ->subject('Recuperación de contraseña')
             ->html("<p>Para restablecer tu contraseña, haz clic en el siguiente enlace:</p><p><a href='{$url}'>Restablecer contraseña</a></p>");
-
+        // Enviar el correo
         $mailer->send($emailMessage);
 
         return $this->json(['mensaje' => 'Si el correo existe, se ha enviado un enlace de recuperación.'], 200);
     }
+
+    /**
+     *
+     * Restablece la contraseña del usuario con el token proporcionado.
+     *
+     * @param Request $request
+     * @param $token
+     * @param UsuarioRepository $userRepository
+     * @param EntityManagerInterface $entityManager
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @return Response
+     */
+
 
     #[Route('/api/restablecer-contrasena/{token}', name: 'restablecer_contrasena', methods: ['POST'])]
     public function restablecerContrasena(Request $request, $token, UsuarioRepository $userRepository, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
