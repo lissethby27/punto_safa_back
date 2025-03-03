@@ -1,5 +1,5 @@
 # Archivos de configuración sensibles
-.env
+
 /.env.*.local
 /.env.local.php
 /composer.lock
