@@ -5,13 +5,25 @@ security:
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
         users_in_memory: { memory: null }
+        app_user_provider:
+            entity:
+                class: App\Entity\Usuario
+                property: nick
+
     firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        main:
-            lazy: true
-            provider: users_in_memory
+            api_login:
+                pattern: ^/api/login
+                stateless: true
+                json_login:
+                    check_path: /api/login_check
+                    success_handler: lexik_jwt_authentication.handler.authentication_success
+                    failure_handler: lexik_jwt_authentication.handler.authentication_failure
+                provider: app_user_provider
+            api:
+                pattern: ^/api/
+                stateless: true
+                provider: app_user_provider
+                jwt: ~
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -22,6 +34,40 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: PUBLIC_ACCESS }
+        - { path: ^/usuario, roles: PUBLIC_ACCESS }
+        - { path: ^/api/usuario/editar/\d+, roles: ROLE_ADMIN }
+        - { path: ^/api/cliente/auth/user, roles: PUBLIC_ACCESS }
+        - { path: ^/autor, roles: PUBLIC_ACCESS }
+        - { path: ^/autor/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/autor/guardar, roles: ROLE_ADMIN }
+        - { path: ^/autor/editar, roles: ROLE_ADMIN }
+        - { path: ^/categoria, roles: PUBLIC_ACCESS }
+        - { path: ^/libro/all, roles: PUBLIC_ACCESS }
+        - { path: ^/libro/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/libro/guardar, roles: ROLE_ADMIN }
+        - { path: ^/libro/editar/\d+, roles: ROLE_ADMIN }
+        - { path: ^/libro/eliminar/\d+, roles: ROLE_ADMIN }
+        - { path: ^/resena/nueva, roles: ROLE_CLIENTE }
+        - { path: ^/resena/listar, roles: ROLE_CLIENTE }
+        - { path: ^/resena/mostrar/\d+, roles: ROLE_CLIENTE }
+        - { path: ^/libro/ordenar, roles: PUBLIC_ACCESS }
+        - { path: ^/resena/eliminar/\d+, roles: ROLE_CLIENTE }
+        - { path: ^/resena/actualizar/\d+, roles: ROLE_CLIENTE }
+        - { path: ^/cliente, roles: PUBLIC_ACCESS }
+        - { path: ^/cliente/guardar, roles: PUBLIC_ACCESS }
+        - { path: ^/api/cliente/editar/\d+, roles: [ROLE_ADMIN, ROLE_CLIENTE] }
+        - { path: ^/resena/resenas/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/resena/media-calificacion/\d+, roles: PUBLIC_ACCESS }
+        - { path: ^/resena/top-libros, roles: PUBLIC_ACCESS }
+        - { path: ^/api/cliente/\d+, roles: [ROLE_ADMIN, ROLE_CLIENTE] }
+
+
+
+
+
+
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 
