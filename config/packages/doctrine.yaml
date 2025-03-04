@@ -35,7 +35,7 @@ when@test:
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
             url: '%env(resolve:DATABASE_URL)%'
             driver: 'pdo_pgsql'
-            logging: true
+            logging: false
             server_version: '13'
             charset: utf8
             default_table_options:
