@@ -28,12 +28,6 @@ editar_usuario:
     controller: App\Controller\UsuarioController::editar
     methods: PUT
 
-frontend:
-    path: /{route}
-    controller: Symfony\Component\HttpFoundation\BinaryFileResponse
-    defaults:
-        route: "index.html"
-    requirements:
-        route: ".+"
+
 
 
