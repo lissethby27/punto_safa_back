@@ -151,7 +151,7 @@ class ResenaController extends AbstractController
                 'calificacion' => $nuevaResena->getCalificacion(),
                 'comentario' => $nuevaResena->getComentario(),
                 'fecha' => $nuevaResena->getFechaFormatted()
-            ], Response::HTTP_CREATED);
+            ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return new JsonResponse(['mensaje' => 'Error al decodificar el token.'], Response::HTTP_UNAUTHORIZED);
         }
@@ -180,9 +180,6 @@ class ResenaController extends AbstractController
             'libroId' => $libroId
         ]);
 
-        // Depurar el SQL generado
-        $sql = $query->getSQL();
-        echo "SQL: $sql\n"; // Imprime el SQL en la consola o logs
 
         return $query->getSingleScalarResult() > 0;
     }
