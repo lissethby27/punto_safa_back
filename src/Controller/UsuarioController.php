@@ -181,7 +181,7 @@ final class UsuarioController extends AbstractController
         $this->entityManager->flush();
 
         // Redirigir al frontend en Angular
-        return new RedirectResponse('http://localhost:4200/home');
+        return new RedirectResponse('https://proyecto-puntosafa.onrender.com/home');
     }
 
 
