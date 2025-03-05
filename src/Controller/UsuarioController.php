@@ -137,7 +137,7 @@ final class UsuarioController extends AbstractController
             ->to($body['email'])
             ->subject('Activa tu cuenta')
             ->html("<p>Haz clic en el enlace para activar tu cuenta:</p>
-<p><a href='https://proyecto-puntosafa.onrender.com/api/activar/{$token}'>Activar cuenta</a></p>");
+<p><a href='http://localhost:8000/api/activar/{$token}'>Activar cuenta</a></p>");
 
 
 
@@ -181,7 +181,7 @@ final class UsuarioController extends AbstractController
         $this->entityManager->flush();
 
         // Redirigir al frontend en Angular
-        return new RedirectResponse('https://proyecto-puntosafa.onrender.com/home');
+        return new RedirectResponse('http://localhost:4200/home');
     }
 
 
